@@ -285,11 +285,64 @@ hr {
 
 /* Inputs */
 .stTextInput>div>div>input, .stSelectbox>div>div, .stNumberInput>div>div>input {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
+    background: var(--bg-tertiary) !important;
+    border: 1px solid #666666 !important;
+    border-radius: 2px !important;
+    color: var(--text-primary) !important;
     font-family: var(--font);
     font-size: 11px;
+    padding: 8px 12px !important;
+}
+
+/* Hide "Press Enter to submit form" hint */
+.stTextInput>div>div>input::placeholder,
+.stNumberInput>div>div>input::placeholder {
+    color: #666 !important;
+}
+
+.stForm [data-testid="InputInstructions"] {
+    display: none !important;
+}
+
+/* Selectbox specific - fix text truncation */
+.stSelectbox [data-baseweb="select"] {
+    min-height: 42px !important;
+}
+
+.stSelectbox [data-baseweb="select"] > div {
+    min-height: 42px !important;
+    padding: 10px 12px !important;
+    align-items: center !important;
+}
+
+.stSelectbox [data-baseweb="select"] > div > div {
+    line-height: 20px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+.stSelectbox [data-baseweb="select"] span,
+.stSelectbox [data-baseweb="select"] div[data-baseweb="base-input"] {
+    font-size: 11px !important;
+    line-height: 20px !important;
+}
+
+/* Dropdown options */
+[data-baseweb="popover"] {
+    font-family: var(--font) !important;
+}
+
+[role="option"] {
+    font-size: 11px !important;
+    padding: 10px 12px !important;
+    line-height: 20px !important;
+    min-height: 40px !important;
+}
+
+.stTextInput>div>div>input:focus, .stSelectbox>div>div:focus-within, .stNumberInput>div>div>input:focus {
+    border-color: var(--accent-orange) !important;
+    box-shadow: 0 0 0 1px var(--accent-orange) !important;
+    outline: none !important;
 }
 
 .stMultiSelect>div>div {

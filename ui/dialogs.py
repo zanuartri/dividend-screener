@@ -82,8 +82,8 @@ def show_stock_details(ticker: str, stock_data: dict = None):
         st.markdown(f"""
 <div style='background: linear-gradient(135deg, #0a0a0a 0%, #1a1000 100%); padding: 18px 20px; margin-bottom: 12px; border-left: 4px solid #ff8c00; border-radius: 4px; box-shadow: 0 4px 12px rgba(255,140,0,0.15); font-family: IBM Plex Mono, monospace;'>
     <div style='font-size: 24px; font-weight: 700; letter-spacing: 2px; color: #ff8c00; font-family: IBM Plex Mono, monospace;'>{ticker}</div>
-    <div style='font-size: 14px; color: #e0e0e0; margin-top: 6px; font-weight: 500; font-family: IBM Plex Mono, monospace;'>{company}</div>
-    <div style='font-size: 11px; color: #999; margin-top: 6px; text-transform: uppercase; letter-spacing: 1px; font-family: IBM Plex Mono, monospace;'>{sector} · {industry}</div>
+    <div style='font-size: 14px; color: #f0f0f0; margin-top: 6px; font-weight: 500; font-family: IBM Plex Mono, monospace;'>{company}</div>
+    <div style='font-size: 11px; color: #aaa; margin-top: 6px; text-transform: uppercase; letter-spacing: 1px; font-family: IBM Plex Mono, monospace;'>{sector} · {industry}</div>
 </div>
 """, unsafe_allow_html=True)
         
@@ -94,17 +94,17 @@ def show_stock_details(ticker: str, stock_data: dict = None):
         
         # === PRICE SNAPSHOT ===
         st.markdown("#### 💹 PRICE & VALUATION")
-        st.markdown("<p style='font-size: 9px; color: #999; margin-top: -8px;'>⚠️ P/E and P/B ratios may be inaccurate for IDX stocks</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size: 9px; color: #aaa; margin-top: -8px;'>⚠️ P/E and P/B ratios may be inaccurate for IDX stocks</p>", unsafe_allow_html=True)
         _render_price_metrics(info, hist)
         
         # === DIVIDEND METRICS ===
         st.markdown("#### 💰 DIVIDEND METRICS")
-        st.markdown("<p style='font-size: 9px; color: #999; margin-top: -8px;'>⚠️ 5Y Avg Yield may be inaccurate for IDX stocks</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size: 9px; color: #aaa; margin-top: -8px;'>⚠️ 5Y Avg Yield may be inaccurate for IDX stocks</p>", unsafe_allow_html=True)
         _render_dividend_metrics(info, divs, stock_data)
         
         # === FINANCIAL HEALTH ===
         st.markdown("#### 📊 FINANCIAL HEALTH")
-        st.markdown("<p style='font-size: 9px; color: #999; margin-top: -8px;'>⚠️ Profit Margin, Debt/Equity, and Beta may be inaccurate for IDX stocks</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size: 9px; color: #aaa; margin-top: -8px;'>⚠️ Profit Margin, Debt/Equity, and Beta may be inaccurate for IDX stocks</p>", unsafe_allow_html=True)
         _render_financial_metrics(info, stock_data)
         
         # === CHARTS WITH ENHANCED SECTION ===
@@ -177,33 +177,33 @@ def _render_price_metrics(info: dict, hist: pd.DataFrame):
     
     st.markdown(f"""
 <div style='display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 18px;'>
-    <div class='bbg-box' style='background: linear-gradient(135deg, #0f0f0f 0%, #1a0f00 100%); border: 1px solid #333; border-radius: 4px; padding: 12px;'>
+    <div class='bbg-box' style='background: linear-gradient(135deg, #1a1a1a 0%, #242424 100%); border: 1px solid #444; border-radius: 4px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);'>
         <div class='bbg-label'>LAST PRICE</div>
         <div class='bbg-value' style='font-size: 18px; color: #ff8c00;'>{current_price:,.0f}</div>
         <div style='font-size: 11px; font-weight: 700; color: {change_color}; margin-top: 4px;'>{change_symbol} {price_change:+,.0f} ({price_change_pct:+.2f}%)</div>
     </div>
-    <div class='bbg-box' style='background: #0f0f0f; border: 1px solid #333; border-radius: 4px; padding: 12px;'>
+    <div class='bbg-box' style='background: #1a1a1a; border: 1px solid #444; border-radius: 4px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);'>
         <div class='bbg-label'>1Y RETURN</div>
         <div style='font-size: 16px; font-weight: 700; color: {"#00ff41" if one_year_return >= 0 else "#ff3333"}; margin: 8px 0;'>{one_year_return:+.2f}%</div>
-        <div style='font-size: 10px; color: #999;'>Annual performance</div>
+        <div style='font-size: 10px; color: #aaa;'>Annual performance</div>
     </div>
-    <div class='bbg-box' style='background: #0f0f0f; border: 1px solid #333; border-radius: 4px; padding: 12px;' title='52-week high and low prices from Yahoo Finance'>
+    <div class='bbg-box' style='background: #1a1a1a; border: 1px solid #444; border-radius: 4px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);' title='52-week high and low prices from Yahoo Finance'>
         <div class='bbg-label'>52W RANGE</div>
-        <div style='font-size: 17px; font-weight: 600; color: #e0e0e0; margin: 4px 0;'>{week_52_low:,.0f}</div>
-        <div style='font-size: 17px; font-weight: 600; color: #e0e0e0;'>{week_52_high:,.0f}</div>
+        <div style='font-size: 17px; font-weight: 600; color: #f0f0f0; margin: 4px 0;'>{week_52_low:,.0f}</div>
+        <div style='font-size: 17px; font-weight: 600; color: #f0f0f0;'>{week_52_high:,.0f}</div>
     </div>
-    <div class='bbg-box' style='background: #0f0f0f; border: 1px solid #333; border-radius: 4px; padding: 12px;' title='Market capitalization and trading volume from Yahoo Finance'>
+    <div class='bbg-box' style='background: #1a1a1a; border: 1px solid #444; border-radius: 4px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);' title='Market capitalization and trading volume from Yahoo Finance'>
         <div class='bbg-label'>MARKET CAP</div>
         <div class='bbg-value'>{cap_str}</div>
         <div class='bbg-label' style='margin-top: 6px;'>VOLUME</div>
-        <div style='font-size: 13px; font-weight: 600; color: #e0e0e0;'>{volume/1e6:.1f}M</div>
+        <div style='font-size: 13px; font-weight: 600; color: #f0f0f0;'>{volume/1e6:.1f}M</div>
     </div>
-    <div class='bbg-box' style='background: #0f0f0f; border: 1px solid #333; border-radius: 4px; padding: 12px;' title='⚠️ Yahoo Finance data - may be inaccurate for IDX stocks. Verify with official sources.'>
+    <div class='bbg-box' style='background: #1a1a1a; border: 1px solid #444; border-radius: 4px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);' title='⚠️ Yahoo Finance data - may be inaccurate for IDX stocks. Verify with official sources.'>
         <div class='bbg-label' style='display: flex; align-items: center; gap: 4px;'>P/E RATIO <span style='font-size: 10px; color: #ff8c00;'>⚠️</span></div>
         <div class='bbg-value'>{pe_ratio:.2f}x</div>
         <div class='bbg-status {pe_status}' style='font-size: 9px; font-weight: 700; letter-spacing: 0.5px; margin-top: 4px;'>{pe_text}</div>
     </div>
-    <div class='bbg-box' style='background: #0f0f0f; border: 1px solid #333; border-radius: 4px; padding: 12px;' title='⚠️ Yahoo Finance data - may be inaccurate for IDX stocks. Verify with official sources.'>
+    <div class='bbg-box' style='background: #1a1a1a; border: 1px solid #444; border-radius: 4px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);' title='⚠️ Yahoo Finance data - may be inaccurate for IDX stocks. Verify with official sources.'>
         <div class='bbg-label' style='display: flex; align-items: center; gap: 4px;'>P/B RATIO <span style='font-size: 10px; color: #ff8c00;'>⚠️</span></div>
         <div class='bbg-value'>{pb_ratio:.2f}x</div>
         <div class='bbg-status {pb_status}' style='font-size: 9px; font-weight: 700; letter-spacing: 0.5px; margin-top: 4px;'>{pb_text}</div>
@@ -278,27 +278,27 @@ def _render_dividend_metrics(info: dict, divs: pd.Series, stock_data: dict = Non
     
     st.markdown(f"""
 <div style='display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 18px;'>
-    <div class='bbg-box' style='background: #0f0f0f; border: 1px solid #333; border-radius: 4px; padding: 12px;'>
+    <div class='bbg-box' style='background: #1a1a1a; border: 1px solid #444; border-radius: 4px; padding: 12px;'>
         <div class='bbg-label'>DIVIDEND YIELD</div>
         <div class='bbg-value' style='font-size: 18px; color: #00ff41;'>{yield_val:.2f}%</div>
         <div class='bbg-status {yield_status}' style='font-size: 9px; font-weight: 700; letter-spacing: 0.5px; margin-top: 4px;'>{yield_text}</div>
     </div>
-    <div class='bbg-box' style='background: #0f0f0f; border: 1px solid #333; border-radius: 4px; padding: 12px;'>
+    <div class='bbg-box' style='background: #1a1a1a; border: 1px solid #444; border-radius: 4px; padding: 12px;'>
         <div class='bbg-label'>ANNUAL DIVIDEND</div>
         <div class='bbg-value'>{div_rate:.2f}</div>
-        <div style='font-size: 9px; color: #999; margin-top: 2px;'>IDR per share</div>
+        <div style='font-size: 9px; color: #aaa; margin-top: 2px;'>IDR per share</div>
     </div>
-    <div class='bbg-box' style='background: #0f0f0f; border: 1px solid #333; border-radius: 4px; padding: 12px;' title='Payout ratio from CSV table data'>
+    <div class='bbg-box' style='background: #1a1a1a; border: 1px solid #444; border-radius: 4px; padding: 12px;' title='Payout ratio from CSV table data'>
         <div class='bbg-label'>PAYOUT RATIO</div>
         <div class='bbg-value'>{payout_val:.1f}%</div>
         <div class='bbg-status {payout_status}' style='font-size: 9px; font-weight: 700; letter-spacing: 0.5px; margin-top: 4px;'>{payout_text}</div>
     </div>
-    <div class='bbg-box' style='background: #0f0f0f; border: 1px solid #333; border-radius: 4px; padding: 12px;' title='⚠️ Yahoo Finance data - may be inaccurate for IDX stocks. Verify with official sources.'>
+    <div class='bbg-box' style='background: #1a1a1a; border: 1px solid #444; border-radius: 4px; padding: 12px;' title='⚠️ Yahoo Finance data - may be inaccurate for IDX stocks. Verify with official sources.'>
         <div class='bbg-label' style='display: flex; align-items: center; gap: 4px;'>5Y AVG YIELD <span style='font-size: 10px; color: #ff8c00;'>⚠️</span></div>
         <div class='bbg-value'>{five_yr_avg_val:.2f}%</div>
-        <div style='font-size: 9px; color: #999; margin-top: 2px;'>Historical average</div>
+        <div style='font-size: 9px; color: #aaa; margin-top: 2px;'>Historical average</div>
     </div>
-    <div class='bbg-box' style='background: #0f0f0f; border: 1px solid #333; border-radius: 4px; padding: 12px;'>
+    <div class='bbg-box' style='background: #1a1a1a; border: 1px solid #444; border-radius: 4px; padding: 12px;'>
         <div class='bbg-label'>YoY GROWTH</div>
         <div class='bbg-value' style='color: {"#00ff41" if div_growth and div_growth > 0 else "#ff3333" if div_growth else "#999"};'>{growth_val}</div>
         <div class='bbg-status {growth_status}' style='font-size: 9px; font-weight: 700; letter-spacing: 0.5px; margin-top: 4px;'>{growth_text}</div>
@@ -321,25 +321,25 @@ def _render_dividend_schedule(stock_data: dict):
     
     if not has_interim and not has_final:
         st.markdown("""
-<div style='background: #0f0f0f; border: 1px solid #333; border-radius: 4px; padding: 16px; text-align: center;'>
+<div style='background: #1a1a1a; border: 1px solid #444; border-radius: 4px; padding: 16px; text-align: center;'>
     <div style='font-size: 11px; color: #808080; letter-spacing: 1px;'>NO DIVIDEND SCHEDULE AVAILABLE</div>
 </div>
 """, unsafe_allow_html=True)
         return
     
-    st.markdown("<p style='font-size: 9px; color: #999; margin-bottom: 8px;'>⚠️ Based on historical pattern - verify with official announcements</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 9px; color: #aaa; margin-bottom: 8px;'>⚠️ Based on historical pattern - verify with official announcements</p>", unsafe_allow_html=True)
     
     st.markdown(f"""
 <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px;'>
     <div class='bbg-box' style='background: {"linear-gradient(135deg, #0f0f0f 0%, #1a0f00 100%)" if has_interim else "#0f0f0f"}; border: 1px solid {"#ff8c00" if has_interim else "#333"}; border-radius: 4px; padding: 16px;'>
         <div class='bbg-label' style='margin-bottom: 8px; display: flex; align-items: center; gap: 4px;'>INTERIM DIVIDEND {"<span style='font-size: 10px; color: #ff8c00;'>⚠️</span>" if has_interim else ""}</div>
         <div style='font-size: 24px; font-weight: 700; color: {"#ff8c00" if has_interim else "#555"}; letter-spacing: 1px; margin: 12px 0;'>{interim if has_interim else "NOT SCHEDULED"}</div>
-        <div style='font-size: 9px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;'>{"Historical pattern" if has_interim else "No interim payment"}</div>
+        <div style='font-size: 9px; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px;'>{"Historical pattern" if has_interim else "No interim payment"}</div>
     </div>
     <div class='bbg-box' style='background: {"linear-gradient(135deg, #0f0f0f 0%, #1a0f00 100%)" if has_final else "#0f0f0f"}; border: 1px solid {"#ff8c00" if has_final else "#333"}; border-radius: 4px; padding: 16px;'>
         <div class='bbg-label' style='margin-bottom: 8px; display: flex; align-items: center; gap: 4px;'>FINAL DIVIDEND {"<span style='font-size: 10px; color: #ff8c00;'>⚠️</span>" if has_final else ""}</div>
         <div style='font-size: 24px; font-weight: 700; color: {"#ff8c00" if has_final else "#555"}; letter-spacing: 1px; margin: 12px 0;'>{final if has_final else "NOT SCHEDULED"}</div>
-        <div style='font-size: 9px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;'>{"Historical pattern" if has_final else "No final payment"}</div>
+        <div style='font-size: 9px; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px;'>{"Historical pattern" if has_final else "No final payment"}</div>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -395,22 +395,22 @@ def _render_financial_metrics(info: dict, stock_data: dict = None):
     
     st.markdown(f"""
 <div style='display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px;'>
-    <div class='bbg-box' style='background: #0f0f0f; border: 1px solid #333; border-radius: 4px; padding: 12px;' title='ROE from CSV table data'>
+    <div class='bbg-box' style='background: #1a1a1a; border: 1px solid #444; border-radius: 4px; padding: 12px;' title='ROE from CSV table data'>
         <div class='bbg-label'>RETURN ON EQUITY</div>
         <div class='bbg-value' style='color: #4a90e2;'>{roe_val:.1f}%</div>
         <div class='bbg-status {roe_status}' style='font-size: 9px; font-weight: 700; letter-spacing: 0.5px; margin-top: 4px;'>{roe_text}</div>
     </div>
-    <div class='bbg-box' style='background: #0f0f0f; border: 1px solid #333; border-radius: 4px; padding: 12px;' title='⚠️ Yahoo Finance data - may be inaccurate for IDX stocks. Verify with official sources.'>
+    <div class='bbg-box' style='background: #1a1a1a; border: 1px solid #444; border-radius: 4px; padding: 12px;' title='⚠️ Yahoo Finance data - may be inaccurate for IDX stocks. Verify with official sources.'>
         <div class='bbg-label' style='display: flex; align-items: center; gap: 4px;'>PROFIT MARGIN <span style='font-size: 10px; color: #ff8c00;'>⚠️</span></div>
         <div class='bbg-value'>{margin_val:.1f}%</div>
         <div class='bbg-status {margin_status}' style='font-size: 9px; font-weight: 700; letter-spacing: 0.5px; margin-top: 4px;'>{margin_text}</div>
     </div>
-    <div class='bbg-box' style='background: #0f0f0f; border: 1px solid #333; border-radius: 4px; padding: 12px;' title='⚠️ Yahoo Finance data - may be inaccurate for IDX stocks. Verify with official sources.'>
+    <div class='bbg-box' style='background: #1a1a1a; border: 1px solid #444; border-radius: 4px; padding: 12px;' title='⚠️ Yahoo Finance data - may be inaccurate for IDX stocks. Verify with official sources.'>
         <div class='bbg-label' style='display: flex; align-items: center; gap: 4px;'>DEBT/EQUITY <span style='font-size: 10px; color: #ff8c00;'>⚠️</span></div>
         <div class='bbg-value'>{de_val:.2f}x</div>
         <div class='bbg-status {de_status}' style='font-size: 9px; font-weight: 700; letter-spacing: 0.5px; margin-top: 4px;'>{de_text}</div>
     </div>
-    <div class='bbg-box' style='background: #0f0f0f; border: 1px solid #333; border-radius: 4px; padding: 12px;' title='⚠️ Yahoo Finance data - may be inaccurate for IDX stocks. Verify with official sources.'>
+    <div class='bbg-box' style='background: #1a1a1a; border: 1px solid #444; border-radius: 4px; padding: 12px;' title='⚠️ Yahoo Finance data - may be inaccurate for IDX stocks. Verify with official sources.'>
         <div class='bbg-label' style='display: flex; align-items: center; gap: 4px;'>BETA (VOLATILITY) <span style='font-size: 10px; color: #ff8c00;'>⚠️</span></div>
         <div class='bbg-value'>{beta:.2f}</div>
         <div class='bbg-status {beta_status}' style='font-size: 9px; font-weight: 700; letter-spacing: 0.5px; margin-top: 4px;'>{beta_text}</div>

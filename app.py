@@ -41,10 +41,17 @@ st.markdown(get_custom_css(), unsafe_allow_html=True)
 # ============================
 # CRUD DIALOG
 # ============================
-@st.dialog("MANAGE STOCKS")
+@st.dialog("MANAGE STOCKS", width="large")
 def crud_dialog():
     """Dialog for adding, editing, or deleting stocks."""
-    action = st.radio("ACTION", ["Add New", "Edit Data", "Delete Data"], key="dialog_action", horizontal=True)
+    # Header with action selector
+    st.markdown("""
+    <div style='background: linear-gradient(135deg, #1a1a1a 0%, #242424 100%); padding: 14px 18px; border-left: 4px solid #ff8c00; border-radius: 4px; margin-bottom: 16px;'>
+        <div style='font-size: 11px; color: #ff8c00; letter-spacing: 1px; font-weight: 700; font-family: IBM Plex Mono, monospace;'>SELECT ACTION</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    action = st.radio("", ["Add New", "Edit Data", "Delete Data"], key="dialog_action", horizontal=True, label_visibility="collapsed")
     
     df = st.session_state.df
     ticker_to_edit = None
@@ -52,6 +59,7 @@ def crud_dialog():
     stock_data = {}
 
     if action in ["Edit Data", "Delete Data"]:
+        st.markdown("<div style='margin-top: 16px;'></div>", unsafe_allow_html=True)
         sorted_tickers = [""] + df["Ticker"].sort_values().tolist()
         ticker_to_edit = st.selectbox("SELECT STOCK", sorted_tickers)
         if ticker_to_edit:
@@ -62,27 +70,42 @@ def crud_dialog():
 
     if action == "Delete Data":
         if ticker_to_edit:
-            st.warning(f"DELETE {ticker_to_edit}?")
-        if st.button("CONFIRM DELETE", type="secondary", disabled=not ticker_to_edit):
+            st.markdown(f"""
+            <div style='background: rgba(255, 51, 51, 0.1); padding: 14px 18px; border-left: 4px solid #ff3333; border-radius: 4px; margin: 16px 0;'>
+                <div style='font-size: 12px; color: #ff3333; font-weight: 700; font-family: IBM Plex Mono, monospace;'>⚠️ DELETE {ticker_to_edit}?</div>
+                <div style='font-size: 10px; color: #aaa; margin-top: 4px;'>This action cannot be undone</div>
+            </div>
+            """, unsafe_allow_html=True)
+        if st.button("🗑️ CONFIRM DELETE", type="secondary", disabled=not ticker_to_edit, use_container_width=True):
             st.session_state.df = df.drop(index=index_to_edit).reset_index(drop=True)
             save_csv(st.session_state.df[MANUAL_COLUMNS])
-            st.toast(f"{ticker_to_edit} DELETED")
+            st.toast(f"✅ {ticker_to_edit} DELETED")
             st.rerun()
         return
 
     with st.form("dialog_form"):
-        st.info("ℹ️ SECTOR will be fetched automatically from Yahoo Finance")
-        c1, c2 = st.columns(2)
-        new_data = {"Ticker": c1.text_input("TICKER", value=stock_data.get("Ticker", "")).upper()}
+        # Info banner
+        st.markdown("""
+        <div style='background: rgba(255, 140, 0, 0.1); padding: 12px 16px; border-left: 3px solid #ff8c00; border-radius: 3px; margin-bottom: 20px;'>
+            <div style='font-size: 10px; color: #ff8c00; font-weight: 600; letter-spacing: 0.5px;'>ℹ️ SECTOR will be fetched automatically from Yahoo Finance</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Ticker input
+        st.markdown("<div style='font-size: 11px; color: #ff8c00; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px; font-family: IBM Plex Mono, monospace;'>STOCK IDENTIFIER</div>", unsafe_allow_html=True)
+        c1, c2 = st.columns([2, 1])
+        new_data = {"Ticker": c1.text_input("TICKER", value=stock_data.get("Ticker", ""), placeholder="e.g., BBCA").upper()}
 
+        # Financial metrics section
+        st.markdown("<div style='font-size: 11px; color: #ff8c00; font-weight: 700; letter-spacing: 1px; margin: 20px 0 8px 0; font-family: IBM Plex Mono, monospace;'>FINANCIAL METRICS</div>", unsafe_allow_html=True)
         c1, c2, c3 = st.columns(3)
-        new_data["DivTTM"] = c1.number_input("DIV TTM", value=coerce_float(stock_data.get("DivTTM", 0)), min_value=0.0)
+        new_data["DivTTM"] = c1.number_input("DIV TTM (IDR)", value=coerce_float(stock_data.get("DivTTM", 0)), min_value=0.0)
         
         # DPR and ROE stored as percentage values (17.3 = 17.3%), NOT decimal
         dpr_value = coerce_float(stock_data.get("DPR", 0))
         roe_value = coerce_float(stock_data.get("ROE", 0))
         
-        dpr_input = c2.number_input("DPR (%)", value=dpr_value, min_value=0.0, max_value=200.0)
+        dpr_input = c2.number_input("DPR (%)", value=dpr_value, min_value=0.0, max_value=1000.0)
         roe_input = c3.number_input("ROE (%)", value=roe_value, min_value=0.0, max_value=100.0)
         
         # Store as percentage values directly
@@ -90,9 +113,11 @@ def crud_dialog():
         new_data["ROE"] = roe_input
         
         c4, c5 = st.columns(2)
-        new_data["BVPS"] = c4.number_input("BVPS", value=coerce_float(stock_data.get("BVPS", 0)), min_value=0.0)
-        new_data["EPS"] = c5.number_input("EPS", value=coerce_float(stock_data.get("EPS", 0)), min_value=0.0)
+        new_data["BVPS"] = c4.number_input("BVPS (IDR)", value=coerce_float(stock_data.get("BVPS", 0)), min_value=0.0)
+        new_data["EPS"] = c5.number_input("EPS (IDR)", value=coerce_float(stock_data.get("EPS", 0)), min_value=0.0)
 
+        # Dividend schedule section
+        st.markdown("<div style='font-size: 11px; color: #ff8c00; font-weight: 700; letter-spacing: 1px; margin: 20px 0 8px 0; font-family: IBM Plex Mono, monospace;'>DIVIDEND SCHEDULE</div>", unsafe_allow_html=True)
         c1, c2 = st.columns(2)
         try:
             interim_idx = MONTH_OPTIONS.index(stock_data.get("Interim", ""))
@@ -102,16 +127,18 @@ def crud_dialog():
             final_idx = MONTH_OPTIONS.index(stock_data.get("Final", ""))
         except (ValueError, TypeError):
             final_idx = 0
-        new_data["Interim"] = c1.selectbox("INTERIM DIV", options=MONTH_OPTIONS, index=interim_idx)
-        new_data["Final"] = c2.selectbox("FINAL DIV", options=MONTH_OPTIONS, index=final_idx)
+        new_data["Interim"] = c1.selectbox("INTERIM DIVIDEND", options=MONTH_OPTIONS, index=interim_idx)
+        new_data["Final"] = c2.selectbox("FINAL DIVIDEND", options=MONTH_OPTIONS, index=final_idx)
 
-        if st.form_submit_button(f"SAVE {action.upper()}"):
+        # Submit button
+        st.markdown("<div style='margin-top: 24px;'></div>", unsafe_allow_html=True)
+        if st.form_submit_button(f"💾 SAVE {action.upper()}", type="primary", use_container_width=True):
             new_data["LastUpdated"] = datetime.today().strftime("%Y-%m-%d %H:%M:%S")
             if action == "Add New":
                 if not new_data["Ticker"]:
-                    st.error("TICKER REQUIRED")
+                    st.error("❌ TICKER REQUIRED")
                 elif new_data["Ticker"] in df["Ticker"].values:
-                    st.error(f"{new_data['Ticker']} EXISTS")
+                    st.error(f"❌ {new_data['Ticker']} ALREADY EXISTS")
                 else:
                     st.session_state.df = pd.concat([df, pd.DataFrame([new_data])], ignore_index=True)
             elif action == "Edit Data" and index_to_edit is not None:
@@ -119,7 +146,7 @@ def crud_dialog():
                     st.session_state.df.at[index_to_edit, k] = new_data.get(k, "")
 
             save_csv(st.session_state.df[MANUAL_COLUMNS])
-            st.toast(f"{new_data['Ticker']} SAVED")
+            st.toast(f"✅ {new_data['Ticker']} SAVED SUCCESSFULLY")
             st.rerun()
 
 
@@ -831,12 +858,15 @@ def render_dividend_calendar(df: pd.DataFrame):
     
     # Display summary bar with larger text
     if len(top_months) > 0:
-        summary_html = '<div style="background: #0f0f0f; padding: 12px 16px; border-radius: 4px; margin-bottom: 12px; border: 1px solid #262626; font-family: IBM Plex Mono, monospace; display: flex; justify-content: space-between; align-items: center;">'
-        summary_html += '<span style="font-size: 11px; color: #808080; letter-spacing: 1px; font-weight: 600;">TOP DIVIDEND MONTHS:</span>'
-        summary_html += '<div style="display: flex; gap: 20px;">'
+        summary_html = '<div style="font-size: 11px; color: #808080; letter-spacing: 1px; font-weight: 600; margin-bottom: 12px; font-family: IBM Plex Mono, monospace;">TOP DIVIDEND MONTHS</div>'
+        summary_html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;">'
         for ms in top_months:
-            summary_html += f'<span style="font-size: 11px;"><span style="color: #ff8c00; font-weight: 700;">{ms["month"].upper()}</span>: <span style="color: #00ff41; font-weight: 600;">{ms["count"]} stocks</span> · <span style="color: #90ee90; font-weight: 600;">{ms["avg_yield"]:.1f}% avg</span></span>'
-        summary_html += '</div></div>'
+            summary_html += f'<div style="background: #1a1a1a; padding: 12px; border-radius: 3px; border-left: 3px solid #ff8c00;">'
+            summary_html += f'<div style="font-size: 13px; color: #ff8c00; font-weight: 700; margin-bottom: 6px; text-transform: uppercase;">{ms["month"]}</div>'
+            summary_html += f'<div style="font-size: 11px; color: #00ff41; font-weight: 600; margin-bottom: 3px;">{ms["count"]} stocks</div>'
+            summary_html += f'<div style="font-size: 11px; color: #90ee90; font-weight: 600;">{ms["avg_yield"]:.1f}% avg yield</div>'
+            summary_html += '</div>'
+        summary_html += '</div>'
         st.markdown(summary_html, unsafe_allow_html=True)
     
     # Filter dropdown for ticker selection
@@ -869,10 +899,6 @@ def render_dividend_calendar(df: pd.DataFrame):
             total_count = len(interim_stocks) + len(final_stocks)
             
             is_current = idx == current_month
-            border_color = "#ff8c00" if is_current else "#333"
-            header_bg = "linear-gradient(135deg, rgba(255,140,0,0.15) 0%, rgba(255,140,0,0.05) 100%)" if is_current else "#1a1a1a"
-            card_bg = "#1f1f1f" if is_current else "#1a1a1a"
-            card_border = "2px solid #ff8c00" if is_current else "1px solid #2a2a2a"
             
             # Signal color mapping
             signal_colors = {
@@ -883,48 +909,54 @@ def render_dividend_calendar(df: pd.DataFrame):
                 'WAIT FOR DIP': '#ff3333'
             }
             
-            # Signal background colors (more visible, less transparent)
-            signal_bg_colors = {
-                'STRONG BUY': 'rgba(0, 255, 65, 0.15)',
-                'BUY': 'rgba(144, 238, 144, 0.15)',
-                'ACCUMULATE': 'rgba(255, 215, 0, 0.15)',
-                'WAIT': 'rgba(255, 140, 0, 0.15)',
-                'WAIT FOR DIP': 'rgba(255, 51, 51, 0.15)'
-            }
-            
-            # Build stock items HTML with SIGNAL DISPLAYED directly (full text, increased height)
+            # Build stock items HTML with cleaner design
             stocks_html = ""
             for _, stock in interim_stocks.iterrows():
-                ticker_name = stock['Ticker']
+                ticker = stock['Ticker']
                 signal = stock.get('Signal', 'N/A')
                 signal_color = signal_colors.get(signal, '#808080')
-                signal_bg = signal_bg_colors.get(signal, 'rgba(128, 128, 128, 0.15)')
                 
-                stocks_html += f'<div style="margin: 6px 8px; padding: 9px 10px; border-radius: 3px; background: {signal_bg}; border-left: 2px solid {signal_color};"><div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;"><span style="font-size: 11px; font-weight: 700; color: {signal_color}; letter-spacing: 0.3px;">{ticker_name}</span><div style="display: flex; gap: 4px; align-items: center; flex-shrink: 0;"><span style="font-size: 7px; color: {signal_color}; letter-spacing: 0.5px; font-weight: 700; background: rgba(255,255,255,0.08); padding: 2px 5px; border-radius: 2px; border: 1px solid {signal_color}40; white-space: nowrap;">{signal}</span><span style="font-size: 7px; color: #999; letter-spacing: 0.5px; font-weight: 700; background: rgba(153,153,153,0.15); padding: 2px 5px; border-radius: 2px; white-space: nowrap;">INTERIM</span></div></div></div>'
+                stocks_html += f'<div style="margin: 0 0 8px 0; padding: 12px; background: #1f1f1f; border-radius: 4px; border-left: 3px solid {signal_color};">'
+                stocks_html += f'<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">'
+                stocks_html += f'<span style="font-size: 13px; font-weight: 700; color: #fff; letter-spacing: 0.5px;">{ticker}</span>'
+                stocks_html += f'<span style="font-size: 8px; color: #aaa; background: #141414; padding: 3px 8px; border-radius: 3px; font-weight: 600; letter-spacing: 0.5px;">INTERIM</span>'
+                stocks_html += '</div>'
+                stocks_html += f'<div style="font-size: 9px; color: {signal_color}; font-weight: 600; letter-spacing: 0.5px;">{signal}</div>'
+                stocks_html += '</div>'
             
             for _, stock in final_stocks.iterrows():
-                ticker_name = stock['Ticker']
+                ticker = stock['Ticker']
                 signal = stock.get('Signal', 'N/A')
                 signal_color = signal_colors.get(signal, '#808080')
-                signal_bg = signal_bg_colors.get(signal, 'rgba(128, 128, 128, 0.15)')
                 
-                stocks_html += f'<div style="margin: 6px 8px; padding: 9px 10px; border-radius: 3px; background: {signal_bg}; border-left: 2px solid {signal_color};"><div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;"><span style="font-size: 11px; font-weight: 700; color: {signal_color}; letter-spacing: 0.3px;">{ticker_name}</span><div style="display: flex; gap: 4px; align-items: center; flex-shrink: 0;"><span style="font-size: 7px; color: {signal_color}; letter-spacing: 0.5px; font-weight: 700; background: rgba(255,255,255,0.08); padding: 2px 5px; border-radius: 2px; border: 1px solid {signal_color}40; white-space: nowrap;">{signal}</span><span style="font-size: 7px; color: #999; letter-spacing: 0.5px; font-weight: 700; background: rgba(153,153,153,0.15); padding: 2px 5px; border-radius: 2px; white-space: nowrap;">FINAL</span></div></div></div>'
+                stocks_html += f'<div style="margin: 0 0 8px 0; padding: 12px; background: #1f1f1f; border-radius: 4px; border-left: 3px solid {signal_color};">'
+                stocks_html += f'<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">'
+                stocks_html += f'<span style="font-size: 13px; font-weight: 700; color: #fff; letter-spacing: 0.5px;">{ticker}</span>'
+                stocks_html += f'<span style="font-size: 8px; color: #aaa; background: #141414; padding: 3px 8px; border-radius: 3px; font-weight: 600; letter-spacing: 0.5px;">FINAL</span>'
+                stocks_html += '</div>'
+                stocks_html += f'<div style="font-size: 9px; color: {signal_color}; font-weight: 600; letter-spacing: 0.5px;">{signal}</div>'
+                stocks_html += '</div>'
             
             if total_count == 0:
-                stocks_html = '<div style="padding: 20px 12px; text-align: center; color: #808080; font-size: 11px; letter-spacing: 1px; font-weight: 600;">NO DIVIDENDS</div>'
+                stocks_html = '<div style="display: flex; align-items: center; justify-content: center; height: 200px; color: #666; font-size: 11px; letter-spacing: 1px; font-weight: 600;">NO DIVIDENDS</div>'
             
-            # Bloomberg-style card with increased height and better current month highlight
+            # Card design
             month_name = month[:3].upper()
-            month_display = f"{month_name} - CURRENT" if is_current else month_name
-            month_html = f"""<div style="background: {card_bg}; border: {card_border}; border-left: 4px solid {border_color}; border-radius: 2px; margin-bottom: 16px; font-family: IBM Plex Mono, monospace; height: 320px; display: flex; flex-direction: column; box-shadow: {"0 4px 12px rgba(255,140,0,0.25)" if is_current else "0 2px 4px rgba(0,0,0,0.4)"}, inset 0 1px 0 rgba(255,255,255,0.03);">
-    <div style="padding: 10px 14px; border-bottom: {"2px solid #ff8c00" if is_current else "1px solid #2a2a2a"}; display: flex; justify-content: space-between; align-items: center; background: {header_bg};">
-        <span style="font-size: 12px; font-weight: 700; color: #ff8c00; letter-spacing: 1.5px;">{month_display}</span>
-        <span style="font-size: 10px; font-weight: 700; color: #1a1a1a; background: linear-gradient(135deg, #ffa500 0%, #ff8c00 100%); padding: 3px 8px; border-radius: 3px; box-shadow: 0 1px 3px rgba(255,140,0,0.3);">{total_count}</span>
-    </div>
-    <div style="padding: 2px 0; overflow-y: auto; flex: 1; scrollbar-width: thin; scrollbar-color: #3a3a3a #1a1a1a;">
-{stocks_html}
-    </div>
-</div>"""
+            card_bg = "#1a1a1a" if is_current else "#141414"
+            card_border = "1px solid #ff8c00" if is_current else "1px solid #262626"
+            header_bg = "linear-gradient(135deg, #ff8c00 0%, #ff6600 100%)" if is_current else "#1f1f1f"
+            month_color = "#000" if is_current else "#ff8c00"
+            count_bg = "#000" if is_current else "#ff8c00"
+            count_color = "#ff8c00" if is_current else "#000"
+            box_shadow = "0 4px 16px rgba(255,140,0,0.3)" if is_current else "0 2px 8px rgba(0,0,0,0.5)"
+            
+            month_html = f'<div style="background: {card_bg}; border: {card_border}; border-radius: 6px; margin-bottom: 16px; font-family: IBM Plex Mono, monospace; overflow: hidden; box-shadow: {box_shadow}; height: 400px; display: flex; flex-direction: column;">'
+            month_html += f'<div style="padding: 14px 16px; background: {header_bg}; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">'
+            month_html += f'<span style="font-size: 14px; font-weight: 700; color: {month_color}; letter-spacing: 1.5px;">{month_name}</span>'
+            month_html += f'<span style="font-size: 11px; font-weight: 700; color: {count_color}; background: {count_bg}; padding: 4px 10px; border-radius: 4px; min-width: 30px; text-align: center;">{total_count}</span>'
+            month_html += '</div>'
+            month_html += f'<div style="padding: 12px; overflow-y: auto; flex: 1; scrollbar-width: thin; scrollbar-color: #333 transparent;">{stocks_html}</div>'
+            month_html += '</div>'
             st.markdown(month_html, unsafe_allow_html=True)
 
 
