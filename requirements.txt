@@ -1,0 +1,13 @@
+# Core Dependencies
+streamlit>=1.30.0
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Data Fetching
+yfinance>=0.2.32
+requests>=2.31.0
+
+# Visualization
+plotly>=5.18.0
+
+# Python Version: 3.11+
