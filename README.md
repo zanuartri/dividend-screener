@@ -164,7 +164,6 @@ Edit `.streamlit/config.toml` to customize:
 
 1. Edit `data_saham.csv` with latest fundamentals
 2. Click **⟳ REFRESH** button to reload
-3. Data auto-refreshes every 10 minutes
 
 **CSV Format:**
 

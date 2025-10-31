@@ -385,7 +385,7 @@ def main():
     st.markdown('<div style="margin: 0;"></div>', unsafe_allow_html=True)
 
     # === FILTERS ===
-    with st.expander("🔍 ADVANCED FILTERS", expanded=False):
+    with st.expander("ADVANCED FILTERS", expanded=False):
         tab_presets, tab_filter, tab_method = st.tabs(["PRESETS", "FILTERS", "METHODOLOGY"])
         
         with tab_filter:
@@ -675,7 +675,7 @@ def main():
                 hide_index=True,
                 on_select="rerun",
                 selection_mode="single-row",
-                height=588,
+                height=700,
                 key="stock_table"
             )
             
@@ -847,6 +847,10 @@ def main():
                         beta_display = "N/A"
                         yield_color = "#00ff41" if div_yield >= 0.05 else "#90ee90" if div_yield >= 0.03 else "#ffd700" if div_yield >= 0.02 else "#ff8c00"
                     
+                    # Get dividend schedule data
+                    interim = preview_stock.get('Interim', '-')
+                    final = preview_stock.get('Final', '-')
+                    
                     # Render preview card (always, regardless of data source)
                     st.markdown(f"""
 <div style='background: #1a1a1a; padding: 16px; border-radius: 2px; border: 1px solid #333; font-family: IBM Plex Mono, monospace;'>
@@ -896,9 +900,22 @@ def main():
                 <span style='color: #808080;'>Market Cap:</span>
                 <span style='color: #f5f5f5; font-weight: 600;'>{cap_str}</span>
             </div>
-            <div style='display: flex; justify-content: space-between;'>
+            <div style='display: flex; justify-content: space-between; margin-bottom: 4px;'>
                 <span style='color: #808080;'>Beta (Volatility):</span>
                 <span style='color: #f5f5f5; font-weight: 600;'>{beta_display}</span>
+            </div>
+        </div>
+    </div>
+    <div style='margin-top: 16px; padding-top: 16px; border-top: 1px solid #333;'>
+        <div style='font-size: 10px; color: #808080; letter-spacing: 1px; margin-bottom: 10px;'>DIVIDEND SCHEDULE</div>
+        <div style='font-size: 11px; line-height: 1.6; color: #cccccc;'>
+            <div style='display: flex; justify-content: space-between; margin-bottom: 4px;'>
+                <span style='color: #808080;'>Interim:</span>
+                <span style='color: #ff8c00; font-weight: 600; font-size: 10px;'>{interim}</span>
+            </div>
+            <div style='display: flex; justify-content: space-between;'>
+                <span style='color: #808080;'>Final:</span>
+                <span style='color: #ff8c00; font-weight: 600; font-size: 10px;'>{final}</span>
             </div>
         </div>
     </div>
@@ -939,20 +956,20 @@ def main():
 
     # === TABS FOR ANALYSIS WITH LAZY RENDERING ===
     st.markdown("<br>", unsafe_allow_html=True)
-    tab1, tab2 = st.tabs(["📅 DIVIDEND CALENDAR", "📊 STATISTICS & CHARTS"])
-    
+    tab1, tab2 = st.tabs(["📊 STATISTICS", "📅 DIVIDEND CALENDAR"])
+
     # Only render the active tab to improve performance
     with tab1:
-        if not df_filtered.empty:
-            render_dividend_calendar(df_filtered)
-        else:
-            st.info("🔍 No data to display calendar")
-    
-    with tab2:
         if not df_filtered.empty:
             render_statistics_and_charts(df_filtered)
         else:
             st.info("🔍 No data to display statistics")
+
+    with tab2:
+        if not df_filtered.empty:
+            render_dividend_calendar(df_filtered)
+        else:
+            st.info("🔍 No data to display calendar")
 
 
 @st.cache_data(show_spinner=False, ttl=60)
@@ -1096,7 +1113,7 @@ def render_statistics_and_charts(df: pd.DataFrame):
     # Add header with stats summary
     st.markdown("""
     <div style="background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%); padding: 12px 16px; border-left: 3px solid #ff8c00; border-radius: 2px; margin-bottom: 20px;">
-        <div style="font-size: 11px; font-weight: 700; color: #ff8c00; letter-spacing: 1.5px; font-family: IBM Plex Mono, monospace;">PORTFOLIO STATISTICS & CHARTS</div>
+        <div style="font-size: 11px; font-weight: 700; color: #ff8c00; letter-spacing: 1.5px; font-family: IBM Plex Mono, monospace;">PORTFOLIO STATISTICS</div>
         <div style="font-size: 9px; color: #808080; margin-top: 4px; font-family: IBM Plex Mono, monospace;">Comprehensive visual analysis of filtered stocks</div>
     </div>
     """, unsafe_allow_html=True)

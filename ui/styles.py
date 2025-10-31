@@ -228,8 +228,14 @@ hr {
     border-bottom: 1px solid var(--border-color) !important;
 }
 
-/* Expander styling */
+/* Expander styling - Remove double border issue */
 [data-testid="stExpander"] {
+    background: transparent;
+    border: none !important;
+    border-radius: 0;
+}
+
+[data-testid="stExpander"] > details {
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: 2px;
@@ -248,6 +254,7 @@ hr {
     flex-direction: row !important;
     justify-content: space-between !important;
     align-items: center !important;
+    cursor: pointer;
 }
 
 [data-testid="stExpander"] summary:hover {
@@ -273,6 +280,12 @@ hr {
 [data-testid="stExpander"] summary:hover svg {
     fill: var(--accent-orange);
     filter: drop-shadow(0 0 5px rgba(255, 140, 0, 0.5));
+}
+
+/* Expander content padding */
+[data-testid="stExpander"] details > div {
+    padding: 12px 16px !important;
+    border-top: 1px solid var(--border-color);
 }
 
 /* Buttons - Bloomberg style */
@@ -541,7 +554,8 @@ hr {
 
 /* Tabs - Bloomberg orange accent */
 [data-testid="stTabs"] button {
-    font-family: var(--font);
+    /* Add emoji-capable fallbacks so icons like 📊 📅 render correctly */
+    font-family: 'IBM Plex Mono', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Segoe UI Symbol', 'Courier New', monospace;
     font-size: 12px;
     font-weight: 700;
     text-transform: uppercase;
@@ -550,6 +564,10 @@ hr {
     background: var(--bg-secondary);
     border: none;
     padding: 12px 24px;
+    line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
 [data-testid="stTabs"] button:hover {
