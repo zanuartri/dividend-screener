@@ -244,6 +244,10 @@ hr {
     color: var(--text-primary);
     transition: color 0.2s;
     padding: 12px 16px;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
 }
 
 [data-testid="stExpander"] summary:hover {
@@ -251,9 +255,19 @@ hr {
     background: var(--bg-tertiary);
 }
 
+/* Ensure icon stays on the right */
 [data-testid="stExpander"] summary svg {
     fill: var(--accent-orange);
     transition: fill 0.2s;
+    order: 2 !important;
+    margin-left: auto !important;
+    margin-right: 0 !important;
+}
+
+/* Ensure text stays on the left */
+[data-testid="stExpander"] summary > div {
+    order: 1 !important;
+    flex-grow: 1 !important;
 }
 
 [data-testid="stExpander"] summary:hover svg {
@@ -284,14 +298,182 @@ hr {
 }
 
 /* Inputs */
-.stTextInput>div>div>input, .stSelectbox>div>div, .stNumberInput>div>div>input {
-    background: var(--bg-tertiary) !important;
-    border: 1px solid #666666 !important;
-    border-radius: 2px !important;
+.stTextInput>div>div>input, .stNumberInput>div>div>input {
+    background: #1a1a1a !important;
+    border: 1px solid #444444 !important;
+    border-radius: 3px !important;
     color: var(--text-primary) !important;
     font-family: var(--font);
     font-size: 11px;
     padding: 8px 12px !important;
+    transition: all 0.2s !important;
+}
+
+/* Ensure select outer wrapper doesn't fight our inner control styling */
+.stSelectbox>div>div,
+.stMultiSelect>div>div {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
+/* Number Input wrapper */
+.stNumberInput {
+    position: relative !important;
+    margin: 3px 0 !important;
+}
+
+/* Number Input - use darker background for visibility */
+.stNumberInput [data-baseweb="input"] {
+    background: #0d0d0d !important;
+    border: 1px solid #444444 !important;
+    border-radius: 3px !important;
+    transition: all 0.2s !important;
+    min-height: 42px !important;
+    height: 42px !important;
+    box-sizing: border-box !important;
+}
+
+.stNumberInput [data-baseweb="input"] > div {
+    min-height: 40px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.stNumberInput [data-baseweb="input"]:hover {
+    background: #151515 !important;
+    border-color: #555555 !important;
+}
+
+.stNumberInput [data-baseweb="input"]:focus-within {
+    background: #1a1a1a !important;
+    border-color: var(--accent-orange) !important;
+    box-shadow: 0 0 0 1px var(--accent-orange) !important;
+}
+
+/* Number input field itself */
+.stNumberInput input[type="number"] {
+    background: transparent !important;
+    border: none !important;
+    color: var(--text-primary) !important;
+    font-family: var(--font) !important;
+    font-size: 11px !important;
+    padding: 0 12px !important;
+    height: 100% !important;
+    flex: 1 !important;
+    margin: 0 !important;
+}
+
+/* Hide default spinners */
+.stNumberInput input[type="number"]::-webkit-inner-spin-button,
+.stNumberInput input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+}
+
+.stNumberInput input[type="number"] {
+    -moz-appearance: textfield !important;
+}
+
+/* Number Input buttons (+/-) */
+.stNumberInput button {
+    background: transparent !important;
+    border: none !important;
+    color: var(--accent-orange) !important;
+    font-weight: 700 !important;
+    font-size: 14px !important;
+    padding: 0 !important;
+    min-width: 32px !important;
+    width: 32px !important;
+    height: 40px !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+}
+
+.stNumberInput button:hover {
+    background: rgba(255, 140, 0, 0.1) !important;
+    color: #fff !important;
+}
+
+/* Input focus state */
+.stTextInput>div>div>input:focus,
+.stNumberInput>div>div>input:focus {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+}
+
+/* Selectbox styling - unify with number input look */
+.stSelectbox [data-baseweb="select"] {
+    background: #0d0d0d !important; /* match number input */
+    border: 1px solid #444444 !important;
+    border-radius: 3px !important;
+    transition: all 0.2s !important;
+    min-height: 42px !important;
+}
+
+/* Deep select internals to ensure background stays consistent */
+.stSelectbox [data-baseweb="select"] > div,
+.stSelectbox [data-baseweb="select"] div[data-baseweb="value-container"],
+.stSelectbox [data-baseweb="select"] div[role="combobox"],
+.stSelectbox [data-baseweb="select"] input {
+    background: #0d0d0d !important;
+    color: var(--text-primary) !important;
+}
+
+.stSelectbox [data-baseweb="select"]:hover {
+    background: #151515 !important; /* match hover of number input */
+    border-color: #555555 !important;
+}
+
+.stSelectbox [data-baseweb="select"]:focus-within {
+    background: #1a1a1a !important; /* match focus of number input */
+    border-color: var(--accent-orange) !important;
+    box-shadow: 0 0 0 1px var(--accent-orange) !important;
+}
+
+/* Multiselect styling - unify with number input look */
+.stMultiSelect [data-baseweb="select"] {
+    background: #0d0d0d !important; /* match number input */
+    border: 1px solid #444444 !important;
+    border-radius: 3px !important;
+    transition: all 0.2s !important;
+    min-height: 42px !important;
+}
+
+/* Deep multiselect internals to ensure background stays consistent */
+.stMultiSelect [data-baseweb="select"] > div,
+.stMultiSelect [data-baseweb="select"] div[data-baseweb="value-container"],
+.stMultiSelect [data-baseweb="select"] div[role="combobox"],
+.stMultiSelect [data-baseweb="select"] input {
+    background: #0d0d0d !important;
+    color: var(--text-primary) !important;
+}
+
+.stMultiSelect [data-baseweb="select"]:hover {
+    background: #151515 !important;
+    border-color: #555555 !important;
+}
+
+.stMultiSelect [data-baseweb="select"]:focus-within {
+    background: #1a1a1a !important;
+    border-color: var(--accent-orange) !important;
+    box-shadow: 0 0 0 1px var(--accent-orange) !important;
+}
+
+.stMultiSelect [data-baseweb="tag"] {
+    background: var(--accent-orange) !important;
+    color: #000 !important;
+    border-radius: 2px !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+}
+
+.stMultiSelect [data-baseweb="tag"] svg {
+    fill: #000 !important;
 }
 
 /* Hide "Press Enter to submit form" hint */
@@ -339,6 +521,12 @@ hr {
     min-height: 40px !important;
 }
 
+/* Placeholder and text color consistency */
+.stSelectbox [data-baseweb="select"] ::placeholder,
+.stMultiSelect [data-baseweb="select"] ::placeholder {
+    color: #666 !important;
+}
+
 .stTextInput>div>div>input:focus, .stSelectbox>div>div:focus-within, .stNumberInput>div>div>input:focus {
     border-color: var(--accent-orange) !important;
     box-shadow: 0 0 0 1px var(--accent-orange) !important;
@@ -346,7 +534,7 @@ hr {
 }
 
 .stMultiSelect>div>div {
-    background: var(--bg-secondary);
+    background: #0d0d0d !important; /* align with other inputs */
     font-family: var(--font);
     font-size: 11px;
 }

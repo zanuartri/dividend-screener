@@ -92,7 +92,7 @@ FILTER_PRESETS = {
     "High Yield": {
         "filter_yield_min": 8.0,
         "filter_signals": ["STRONG BUY", "BUY", "ACCUMULATE"],
-        "filter_roe_min": 0.0,
+        "filter_roe_min": 5.0,
         "filter_discount_min": 0.0,
         "filter_dpr_max": 1000.0,
         "filter_sectors": []

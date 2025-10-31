@@ -252,6 +252,8 @@ def main():
         padding-top: 4px !important;
         padding-bottom: 4px !important;
         font-size: 11px !important;
+        min-width: 120px !important; /* keep single row without crowding */
+        white-space: nowrap !important;
     }
     
     /* Target button text */
@@ -267,28 +269,118 @@ def main():
         height: 32px !important;
         padding: 4px 12px !important;
         font-size: 11px !important;
+        min-width: 120px !important;
+        white-space: nowrap !important;
+    }
+    
+    /* Target download button specifically - match regular button style */
+    .stDownloadButton > button {
+        min-height: 32px !important;
+        height: 32px !important;
+        padding: 4px 12px !important;
+        font-size: 11px !important;
+
+    /* Responsive width for 4-button area: default 50%, below 1100px use 60% */
+    /* Target the left column that contains the MANAGE button, then its sibling spacer */
+    div[data-testid="column"]:has(button[key="btn_manage"]) {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+    }
+    div[data-testid="column"]:has(button[key="btn_manage"]) + div[data-testid="column"] {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+    }
+    @media (max-width: 1100px) {
+        div[data-testid="column"]:has(button[key="btn_manage"]) {
+            flex-basis: 60% !important;
+            max-width: 60% !important;
+        }
+        div[data-testid="column"]:has(button[key="btn_manage"]) + div[data-testid="column"] {
+            flex-basis: 40% !important;
+            max-width: 40% !important;
+        }
+    }
+        background: linear-gradient(to bottom, #262626, #1a1a1a) !important;
+        border: 2px solid #ff8c00 !important;
+        color: #ff8c00 !important;
+        font-family: 'IBM Plex Mono', 'Courier New', monospace !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 2px !important;
+        border-radius: 0px !important;
+        transition: all 0.2s !important;
+        box-shadow: 0 0 10px rgba(255, 140, 0, 0.2) !important;
+        min-width: 140px !important;
+        white-space: nowrap !important;
+    }
+    
+    .stDownloadButton > button:hover {
+        background: #ff8c00 !important;
+        color: #0d0d0d !important;
+        box-shadow: 0 0 10px rgba(255, 140, 0, 0.2) !important;
+        min-width: 120px !important;
+    
+    .stDownloadButton > button p {
+
+    /* Responsive tweaks so buttons remain on one row without overlapping */
+    @media (max-width: 1100px) {
+        .stButton > button, .stDownloadButton > button, button[kind="primary"], button[kind="secondary"] {
+            min-width: 110px !important;
+            padding-left: 10px !important; padding-right: 10px !important;
+            letter-spacing: 1px !important;
+        }
+    }
+    @media (max-width: 880px) {
+        .stButton > button, .stDownloadButton > button, button[kind="primary"], button[kind="secondary"] {
+            min-width: 96px !important;
+            font-size: 10px !important;
+            letter-spacing: 1px !important;
+            padding-left: 8px !important; padding-right: 8px !important;
+        }
+    }
+        font-size: 11px !important;
+        line-height: 1.2 !important;
+        margin: 0 !important;
     }
     </style>
     """, unsafe_allow_html=True)
     
-    # Button layout - small buttons on the left (slightly wider)
-    col_btn1, col_btn2, col_btn3, col_spacer = st.columns([1.2, 1.2, 1.2, 8.4])
-    with col_btn1:
-        if st.button("⚙ MANAGE", use_container_width=True, key="btn_manage"):
-            crud_dialog()
-    with col_btn2:
-        if st.button("⟳ REFRESH", use_container_width=True, key="btn_refresh"):
-            st.session_state.pop('last_yf_fetch', None)
-            st.session_state['force_recompute'] = True
-            for key in list(st.session_state.keys()):
-                if key.startswith('processed_df_'):
-                    del st.session_state[key]
-            st.cache_data.clear()
-            st.rerun()
-    with col_btn3:
-        if st.button("✕ CLEAR", use_container_width=True, key="btn_clear"):
-            clear_filters()
-            st.rerun()
+    # Button layout area constrained to 50% width of the page
+    group_col, spacer_col = st.columns([1, 1])
+    with group_col:
+        col_btn1, col_btn2, col_btn3, col_btn4 = st.columns(4)
+        with col_btn1:
+            if st.button("⚙ MANAGE", use_container_width=True, key="btn_manage"):
+                crud_dialog()
+        with col_btn2:
+            if st.button("⟳ REFRESH", use_container_width=True, key="btn_refresh"):
+                st.session_state.pop('last_yf_fetch', None)
+                st.session_state['force_recompute'] = True
+                for key in list(st.session_state.keys()):
+                    if key.startswith('processed_df_'):
+                        del st.session_state[key]
+                st.cache_data.clear()
+                st.rerun()
+        with col_btn3:
+            if st.button("✕ CLEAR", use_container_width=True, key="btn_clear"):
+                clear_filters()
+                st.rerun()
+        with col_btn4:
+            # Read the existing data_saham.csv file and provide download
+            import os
+            csv_path = os.path.join(os.path.dirname(__file__), 'data_saham.csv')
+            with open(csv_path, 'rb') as f:
+                csv_data = f.read()
+            
+            st.download_button(
+                label="⬇ DOWNLOAD",
+                data=csv_data,
+                file_name="data_saham.csv",
+                mime="text/csv",
+                key="btn_download",
+                type="secondary",
+                use_container_width=True
+            )
 
     st.markdown('<div style="margin: 0;"></div>', unsafe_allow_html=True)
 
@@ -311,26 +403,52 @@ def main():
                 )
             
             with col2:
-                filter_discount_min = st.number_input(
-                    "MIN DISCOUNT (%)", min_value=0.0, max_value=100.0, step=5.0,
-                    value=st.session_state.get('filter_discount_min', 0.0),
+                # Static choices
+                options_discount = [0, 10, 20, 30, 40, 50]
+                options_yield = [0, 3, 5, 8, 10, 12, 15]
+                # Determine default index based on session state
+                try:
+                    idx_disc = options_discount.index(int(st.session_state.get('filter_discount_min', 0)))
+                except Exception:
+                    idx_disc = 0
+                try:
+                    idx_yield = options_yield.index(int(float(st.session_state.get('filter_yield_min', 0))))
+                except Exception:
+                    idx_yield = 0
+                filter_discount_min = st.selectbox(
+                    "MIN DISCOUNT (%)",
+                    options=options_discount,
+                    index=idx_disc,
                     key='filter_discount_min'
                 )
-                filter_yield_min = st.number_input(
-                    "MIN YIELD (%)", min_value=0.0, max_value=20.0, step=0.5,
-                    value=st.session_state.get('filter_yield_min', 0.0),
+                filter_yield_min = st.selectbox(
+                    "MIN YIELD (%)",
+                    options=options_yield,
+                    index=idx_yield,
                     key='filter_yield_min'
                 )
             
             with col3:
-                filter_roe_min = st.number_input(
-                    "MIN ROE (%)", min_value=0.0, max_value=50.0, step=1.0,
-                    value=st.session_state.get('filter_roe_min', 0.0),
+                options_roe = [0, 5, 8, 10, 12, 15, 20]
+                options_dpr = [50, 60, 70, 80, 90, 100, 200, 1000]
+                try:
+                    idx_roe = options_roe.index(int(float(st.session_state.get('filter_roe_min', 0))))
+                except Exception:
+                    idx_roe = 0
+                try:
+                    idx_dpr = options_dpr.index(int(st.session_state.get('filter_dpr_max', 1000)))
+                except Exception:
+                    idx_dpr = len(options_dpr) - 1
+                filter_roe_min = st.selectbox(
+                    "MIN ROE (%)",
+                    options=options_roe,
+                    index=idx_roe,
                     key='filter_roe_min'
                 )
-                filter_dpr_max = st.number_input(
-                    "MAX DPR (%)", min_value=0.0, max_value=1000.0, step=5.0,
-                    value=st.session_state.get('filter_dpr_max', 1000.0),
+                filter_dpr_max = st.selectbox(
+                    "MAX DPR (%)",
+                    options=options_dpr,
+                    index=idx_dpr,
                     key='filter_dpr_max'
                 )
         
@@ -370,39 +488,54 @@ def main():
                 }
             }
             
+            # Preset cards - HTML cards dengan button apply
             preset_cols = st.columns(4)
+            
             for idx, (preset_name, preset_config) in enumerate(FILTER_PRESETS.items()):
                 with preset_cols[idx]:
                     meta = presets_meta.get(preset_name, {})
                     
-                    # Create custom styled card button
+                    # Determine border color based on preset
+                    border_colors = {
+                        "High Yield": "#00ff41",
+                        "Value Play": "#ff8c00", 
+                        "Growth Dividend": "#00d4ff",
+                        "Safe Income": "#9d4edd"
+                    }
+                    border_color = border_colors.get(preset_name, "#ff8c00")
+                    
+                    # Create card HTML
                     st.markdown(f"""
                     <div style="background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%); 
                                 border: 1px solid #262626; 
-                                border-left: 3px solid {meta.get('color', '#ff8c00')}; 
-                                border-radius: 2px; 
-                                padding: 14px 12px; 
-                                margin-bottom: 10px;
-                                box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-                                transition: all 0.2s ease;">
-                        <div style="font-size: 20px; margin-bottom: 8px; text-align: center;">{meta.get('icon', '⭐')}</div>
-                        <div style="font-size: 11px; font-weight: 700; color: {meta.get('color', '#ff8c00')}; 
-                                    text-align: center; letter-spacing: 1px; font-family: IBM Plex Mono, monospace; margin-bottom: 6px;">
-                            {preset_name.upper()}
+                                border-left: 4px solid {border_color};
+                                border-radius: 4px; 
+                                padding: 20px 16px; 
+                                min-height: 140px;
+                                box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+                                margin-bottom: 8px;
+                                text-align: center;
+                                font-family: 'IBM Plex Mono', monospace;">
+                        <div style="font-size: 32px; margin-bottom: 8px;">{meta.get('icon', '⭐')}</div>
+                        <div style="font-size: 13px; font-weight: 700; color: {border_color}; 
+                                    letter-spacing: 1px; margin-bottom: 8px; text-transform: uppercase;">
+                            {preset_name}
                         </div>
-                        <div style="font-size: 8px; color: #999; text-align: center; margin-bottom: 8px; font-family: IBM Plex Mono, monospace;">
+                        <div style="font-size: 9px; color: #aaa; margin-bottom: 6px; font-style: italic;">
                             {meta.get('desc', '')}
                         </div>
-                        <div style="font-size: 8px; color: #999; text-align: center; line-height: 1.4; font-family: IBM Plex Mono, monospace;">
+                        <div style="font-size: 8px; color: #808080; line-height: 1.4;">
                             {meta.get('criteria', '')}
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
                     
+                    # Apply button below the card
                     if st.button(
                         f"APPLY {preset_name.upper()}",
                         key=f"preset_{preset_name}",
-                        use_container_width=True
+                        use_container_width=True,
+                        type="secondary"
                     ):
                         apply_preset(preset_name)
                         st.rerun()
@@ -806,7 +939,7 @@ def main():
 
     # === TABS FOR ANALYSIS WITH LAZY RENDERING ===
     st.markdown("<br>", unsafe_allow_html=True)
-    tab1, tab2, tab3 = st.tabs(["📅 DIVIDEND CALENDAR", "📊 STATISTICS", "📈 CHARTS"])
+    tab1, tab2 = st.tabs(["📅 DIVIDEND CALENDAR", "📊 STATISTICS & CHARTS"])
     
     # Only render the active tab to improve performance
     with tab1:
@@ -817,15 +950,9 @@ def main():
     
     with tab2:
         if not df_filtered.empty:
-            render_statistics(df_filtered)
+            render_statistics_and_charts(df_filtered)
         else:
             st.info("🔍 No data to display statistics")
-    
-    with tab3:
-        if not df_filtered.empty:
-            render_charts(df_filtered)
-        else:
-            st.info("🔍 No data to display charts")
 
 
 @st.cache_data(show_spinner=False, ttl=60)
@@ -960,8 +1087,8 @@ def render_dividend_calendar(df: pd.DataFrame):
             st.markdown(month_html, unsafe_allow_html=True)
 
 
-def render_statistics(df: pd.DataFrame):
-    """Render statistical analysis with Bloomberg terminal styling."""
+def render_statistics_and_charts(df: pd.DataFrame):
+    """Render combined statistics and charts with Bloomberg terminal styling."""
     if df.empty:
         st.info("No data to display")
         return
@@ -969,23 +1096,25 @@ def render_statistics(df: pd.DataFrame):
     # Add header with stats summary
     st.markdown("""
     <div style="background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%); padding: 12px 16px; border-left: 3px solid #ff8c00; border-radius: 2px; margin-bottom: 20px;">
-        <div style="font-size: 11px; font-weight: 700; color: #ff8c00; letter-spacing: 1.5px; font-family: IBM Plex Mono, monospace;">PORTFOLIO STATISTICS</div>
-        <div style="font-size: 9px; color: #808080; margin-top: 4px; font-family: IBM Plex Mono, monospace;">Aggregate analysis of filtered stocks</div>
+        <div style="font-size: 11px; font-weight: 700; color: #ff8c00; letter-spacing: 1.5px; font-family: IBM Plex Mono, monospace;">PORTFOLIO STATISTICS & CHARTS</div>
+        <div style="font-size: 9px; color: #808080; margin-top: 4px; font-family: IBM Plex Mono, monospace;">Comprehensive visual analysis of filtered stocks</div>
     </div>
     """, unsafe_allow_html=True)
     
+    # === ROW 1: Sector Breakdown (Pie) + Sector Distribution (Bar) ===
+    st.markdown("### 📊 SECTOR ANALYSIS")
     col1, col2 = st.columns(2)
     
     with col1:
         st.markdown("#### SECTOR BREAKDOWN")
         sector_counts = df["Sector"].value_counts()
-        fig_sector = px.pie(
+        fig_sector_pie = px.pie(
             values=sector_counts.values,
             names=sector_counts.index,
             color_discrete_sequence=px.colors.sequential.Oranges_r,
             hole=0.5
         )
-        fig_sector.update_layout(
+        fig_sector_pie.update_layout(
             template='plotly_dark',
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
@@ -1002,275 +1131,49 @@ def render_statistics(df: pd.DataFrame):
                 font=dict(size=9)
             )
         )
-        fig_sector.update_traces(
+        fig_sector_pie.update_traces(
             textposition='inside',
             textinfo='percent',
             textfont_size=9,
             marker=dict(line=dict(color='#000000', width=2))
         )
-        st.plotly_chart(fig_sector, use_container_width=True)
-        
-        # Sector performance comparison
-        st.markdown("#### SECTOR PERFORMANCE")
-        sector_metrics = df.groupby('Sector').agg({
-            'DivYield': 'mean',
-            'ROE': 'mean'
-        }).reset_index()
-        sector_metrics['DivYield'] = sector_metrics['DivYield'] * 100
-        sector_metrics = sector_metrics.sort_values('DivYield', ascending=False)
-        
-        fig_sector_comp = go.Figure()
-        fig_sector_comp.add_trace(go.Bar(
-            name='Avg Yield',
-            x=sector_metrics['Sector'],
-            y=sector_metrics['DivYield'],
-            marker_color='#ff8c00',
-            marker_line_color='#000',
-            marker_line_width=1
-        ))
-        fig_sector_comp.add_trace(go.Bar(
-            name='Avg ROE',
-            x=sector_metrics['Sector'],
-            y=sector_metrics['ROE'],
-            marker_color='#4a90e2',
-            marker_line_color='#000',
-            marker_line_width=1
-        ))
-        
-        fig_sector_comp.update_layout(
-            template='plotly_dark',
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(10,10,10,1)',
-            font=dict(family='IBM Plex Mono', size=9, color='#ccc'),
-            height=320,
-            barmode='group',
-            bargap=0.15,
-            bargroupgap=0.1,
-            margin=dict(l=40, r=20, t=20, b=60),
-            xaxis=dict(
-                title='',
-                tickangle=-45,
-                showgrid=False
-            ),
-            yaxis=dict(
-                title='%',
-                gridcolor='#262626',
-                showgrid=True
-            ),
-            legend=dict(
-                orientation="h", 
-                yanchor="bottom", 
-                y=1.02, 
-                xanchor="right", 
-                x=1,
-                font=dict(size=9)
-            )
-        )
-        st.plotly_chart(fig_sector_comp, use_container_width=True)
-    
-    with col2:
-        st.markdown("#### SIGNAL DISTRIBUTION")
-        signal_counts = df["Signal"].value_counts()
-        fig_signal = px.bar(
-            x=signal_counts.index,
-            y=signal_counts.values,
-            color=signal_counts.index,
-            color_discrete_map={
-                'STRONG BUY': '#00ff41',
-                'BUY': '#90ee90',
-                'ACCUMULATE': '#ffd700',
-                'WAIT': '#ff8c00',
-                'WAIT FOR DIP': '#ff3333'
-            }
-        )
-        fig_signal.update_layout(
-            template='plotly_dark',
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(10,10,10,1)',
-            font=dict(family='IBM Plex Mono', size=9, color='#ccc'),
-            height=320,
-            showlegend=False,
-            margin=dict(l=40, r=20, t=20, b=80),
-            xaxis=dict(
-                title='',
-                tickangle=-45,
-                showgrid=False
-            ),
-            yaxis=dict(
-                title='COUNT',
-                gridcolor='#262626',
-                showgrid=True
-            )
-        )
-        fig_signal.update_traces(marker_line_color='#000', marker_line_width=1)
-        st.plotly_chart(fig_signal, use_container_width=True)
-        
-        st.markdown("#### KEY METRICS")
-        
-        # Calculate actionable insights
-        buy_signals = df[df['Signal'].isin(['STRONG BUY', 'BUY'])]
-        high_yield_stocks = df[df['DivYield'] >= 0.08]
-        undervalued_stocks = df[df['Discount'] >= 0.15]
-        quality_stocks = df[df['ROE'] >= 15]
-        
-        # Create styled metrics table with actionable data
-        stats_html = f"""
-        <div style="background: #0f0f0f; border: 1px solid #262626; border-radius: 4px; padding: 16px; font-family: IBM Plex Mono, monospace;">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                <div style="background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%); padding: 10px 12px; border-left: 2px solid #ff8c00; border-radius: 2px;">
-                    <div style="font-size: 9px; color: #808080; margin-bottom: 4px; letter-spacing: 0.5px;">TOTAL STOCKS</div>
-                    <div style="font-size: 20px; font-weight: 700; color: #ff8c00;">{len(df)}</div>
-                </div>
-                <div style="background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%); padding: 10px 12px; border-left: 2px solid #00ff41; border-radius: 2px;">
-                    <div style="font-size: 9px; color: #808080; margin-bottom: 4px; letter-spacing: 0.5px;">BUY SIGNALS</div>
-                    <div style="font-size: 20px; font-weight: 700; color: #00ff41;">{len(buy_signals)}</div>
-                    <div style="font-size: 8px; color: #666; margin-top: 2px;">Strong Buy + Buy</div>
-                </div>
-                <div style="background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%); padding: 10px 12px; border-left: 2px solid #90ee90; border-radius: 2px;">
-                    <div style="font-size: 9px; color: #808080; margin-bottom: 4px; letter-spacing: 0.5px;">HIGH YIELD</div>
-                    <div style="font-size: 20px; font-weight: 700; color: #90ee90;">{len(high_yield_stocks)}</div>
-                    <div style="font-size: 8px; color: #666; margin-top: 2px;">Yield ≥ 8%</div>
-                </div>
-                <div style="background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%); padding: 10px 12px; border-left: 2px solid #ffd700; border-radius: 2px;">
-                    <div style="font-size: 9px; color: #808080; margin-bottom: 4px; letter-spacing: 0.5px;">UNDERVALUED</div>
-                    <div style="font-size: 20px; font-weight: 700; color: #ffd700;">{len(undervalued_stocks)}</div>
-                    <div style="font-size: 8px; color: #666; margin-top: 2px;">Discount ≥ 15%</div>
-                </div>
-                <div style="background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%); padding: 10px 12px; border-left: 2px solid #4a90e2; border-radius: 2px;">
-                    <div style="font-size: 9px; color: #808080; margin-bottom: 4px; letter-spacing: 0.5px;">QUALITY</div>
-                    <div style="font-size: 20px; font-weight: 700; color: #4a90e2;">{len(quality_stocks)}</div>
-                    <div style="font-size: 8px; color: #666; margin-top: 2px;">ROE ≥ 15%</div>
-                </div>
-                <div style="background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%); padding: 10px 12px; border-left: 2px solid #ff8c00; border-radius: 2px;">
-                    <div style="font-size: 9px; color: #808080; margin-bottom: 4px; letter-spacing: 0.5px;">AVG DISCOUNT</div>
-                    <div style="font-size: 20px; font-weight: 700; color: #ff8c00;">{df['Discount'].mean() * 100:+.1f}%</div>
-                    <div style="font-size: 8px; color: #666; margin-top: 2px;">Portfolio avg</div>
-                </div>
-            </div>
-        </div>
-        """
-        st.markdown(stats_html, unsafe_allow_html=True)
-
-
-@st.cache_data(show_spinner=False, ttl=120)
-def create_scatter_chart(df: pd.DataFrame) -> go.Figure:
-    """Cached scatter chart creation."""
-    fig = px.scatter(
-        df,
-        x='ROE',
-        y='DivYield',
-        color='Signal',
-        size='CurrentPrice',
-        hover_data=['Ticker', 'Sector'],
-        color_discrete_map={
-            'STRONG BUY': '#00ff41',
-            'BUY': '#90ee90',
-            'ACCUMULATE': '#ffd700',
-            'WAIT': '#ff8c00',
-            'WAIT FOR DIP': '#ff3333'
-        }
-    )
-    fig.update_layout(
-        template='plotly_dark',
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(10,10,10,1)',
-        font=dict(family='IBM Plex Mono', size=9, color='#ccc'),
-        height=380,
-        margin=dict(l=50, r=20, t=20, b=50),
-        xaxis=dict(
-            title='ROE (%)',
-            tickformat='.0f',
-            gridcolor='#262626',
-            showgrid=True
-        ),
-        yaxis=dict(
-            title='Dividend Yield',
-            tickformat='.1%',
-            gridcolor='#262626',
-            showgrid=True
-        ),
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=-0.25,
-            xanchor="center",
-            x=0.5
-        )
-    )
-    return fig
-
-
-@st.cache_data(show_spinner=False, ttl=120)
-def create_sector_chart(df: pd.DataFrame) -> go.Figure:
-    """Cached sector distribution chart."""
-    sector_data = df.groupby('Sector').size().reset_index(name='count')
-    sector_data = sector_data.sort_values('count', ascending=False)
-    
-    fig = px.bar(
-        sector_data,
-        x='Sector',
-        y='count',
-        color='count',
-        color_continuous_scale='oranges'
-    )
-    fig.update_layout(
-        template='plotly_dark',
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(10,10,10,1)',
-        font=dict(family='IBM Plex Mono', size=9, color='#ccc'),
-        height=380,
-        margin=dict(l=50, r=20, t=20, b=100),
-        xaxis=dict(
-            tickangle=-45,
-            gridcolor='#262626'
-        ),
-        yaxis=dict(
-            title='Stock Count',
-            gridcolor='#262626',
-            showgrid=True
-        ),
-        showlegend=False
-    )
-    return fig
-
-
-def render_charts(df: pd.DataFrame):
-    """Render analytical charts with enhanced styling and caching."""
-    if df.empty:
-        st.info("No data to display")
-        return
-    
-    # Add header
-    st.markdown("""
-    <div style="background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%); padding: 12px 16px; border-left: 3px solid #ff8c00; border-radius: 2px; margin-bottom: 20px;">
-        <div style="font-size: 11px; font-weight: 700; color: #ff8c00; letter-spacing: 1.5px; font-family: IBM Plex Mono, monospace;">ANALYTICAL CHARTS</div>
-        <div style="font-size: 9px; color: #808080; margin-top: 4px; font-family: IBM Plex Mono, monospace;">Visual analysis of key metrics and relationships</div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("#### YIELD VS ROE SCATTER")
-        fig_scatter = create_scatter_chart(df)
-        st.plotly_chart(fig_scatter, use_container_width=True)
+        st.plotly_chart(fig_sector_pie, use_container_width=True)
     
     with col2:
         st.markdown("#### SECTOR DISTRIBUTION")
-        fig_sector = create_sector_chart(df)
-        st.plotly_chart(fig_sector, use_container_width=True)
+        sector_data = df.groupby('Sector').size().reset_index(name='count')
+        sector_data = sector_data.sort_values('count', ascending=False)
+        
+        fig_sector_bar = px.bar(
+            sector_data,
+            x='Sector',
+            y='count',
+            color='count',
+            color_continuous_scale='oranges'
+        )
+        fig_sector_bar.update_layout(
+            template='plotly_dark',
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(10,10,10,1)',
+            font=dict(family='IBM Plex Mono', size=9, color='#ccc'),
+            height=320,
+            margin=dict(l=50, r=20, t=20, b=100),
+            xaxis=dict(
+                tickangle=-45,
+                gridcolor='#262626'
+            ),
+            yaxis=dict(
+                title='Stock Count',
+                gridcolor='#262626',
+                showgrid=True
+            ),
+            showlegend=False
+        )
+        st.plotly_chart(fig_sector_bar, use_container_width=True)
     
-    # Additional row for more insights - BEST PICKS FOR ACTION
-    st.markdown('<div style="margin: 20px 0;"></div>', unsafe_allow_html=True)
-    
-    # Add actionable header
-    st.markdown("""
-    <div style="background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%); padding: 10px 16px; border-left: 3px solid #00ff41; border-radius: 2px; margin-bottom: 16px;">
-        <div style="font-size: 10px; font-weight: 700; color: #00ff41; letter-spacing: 1.5px; font-family: IBM Plex Mono, monospace;">BEST OPPORTUNITIES</div>
-        <div style="font-size: 8px; color: #808080; margin-top: 3px; font-family: IBM Plex Mono, monospace;">Top stocks by key dividend metrics · Quick decision support</div>
-    </div>
-    """, unsafe_allow_html=True)
-    
+    # === ROW 2: Top 10 by Yield + Top 10 by Discount ===
+    st.markdown('<div style="margin: 24px 0;"></div>', unsafe_allow_html=True)
+    st.markdown("### 🏆 TOP OPPORTUNITIES")
     col3, col4 = st.columns(2)
     
     with col3:
@@ -1298,7 +1201,7 @@ def render_charts(df: pd.DataFrame):
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(10,10,10,1)',
             font=dict(family='IBM Plex Mono', size=9, color='#ccc'),
-            height=300,
+            height=320,
             margin=dict(l=50, r=20, t=20, b=50),
             xaxis=dict(
                 title='',
@@ -1339,7 +1242,7 @@ def render_charts(df: pd.DataFrame):
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(10,10,10,1)',
             font=dict(family='IBM Plex Mono', size=9, color='#ccc'),
-            height=300,
+            height=320,
             margin=dict(l=50, r=20, t=20, b=50),
             xaxis=dict(
                 title='',
@@ -1355,8 +1258,9 @@ def render_charts(df: pd.DataFrame):
         fig_top_disc.update_traces(marker_line_color='#000', marker_line_width=1)
         st.plotly_chart(fig_top_disc, use_container_width=True)
     
-    # Add BEST VALUE section
-    st.markdown('<div style="margin: 16px 0;"></div>', unsafe_allow_html=True)
+    # === ROW 3: Best Value Combo + Yield Sustainability ===
+    st.markdown('<div style="margin: 24px 0;"></div>', unsafe_allow_html=True)
+    st.markdown("### 💎 VALUE ANALYSIS")
     col5, col6 = st.columns(2)
     
     with col5:
@@ -1365,7 +1269,6 @@ def render_charts(df: pd.DataFrame):
         best_value = df[(df['DivYield'] >= 0.06) & (df['Discount'] >= 0.10) & (df['ROE'] >= 10)].nlargest(8, 'DivYield')[['Ticker', 'DivYield', 'Discount', 'ROE', 'Signal']].copy()
         
         if len(best_value) > 0:
-            # Create bubble chart
             best_value['Size'] = best_value['DivYield'] * 100
             fig_value = px.scatter(
                 best_value,
@@ -1391,7 +1294,7 @@ def render_charts(df: pd.DataFrame):
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(10,10,10,1)',
                 font=dict(family='IBM Plex Mono', size=9, color='#ccc'),
-                height=300,
+                height=320,
                 margin=dict(l=50, r=20, t=20, b=50),
                 xaxis=dict(
                     title='Discount',
@@ -1443,7 +1346,7 @@ def render_charts(df: pd.DataFrame):
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(10,10,10,1)',
                 font=dict(family='IBM Plex Mono', size=9, color='#ccc'),
-                height=300,
+                height=320,
                 margin=dict(l=50, r=50, t=20, b=50),
                 xaxis=dict(
                     title='',
@@ -1475,6 +1378,67 @@ def render_charts(df: pd.DataFrame):
             st.plotly_chart(fig_sustain, use_container_width=True)
         else:
             st.info("No high-yield stocks (≥5%) available.")
+    
+    # === KEY METRICS at the bottom ===
+    st.markdown('<div style="margin: 24px 0;"></div>', unsafe_allow_html=True)
+    st.markdown("### 📈 KEY METRICS")
+    
+    buy_signals = df[df['Signal'].isin(['STRONG BUY', 'BUY'])]
+    high_yield_stocks = df[df['DivYield'] >= 0.08]
+    undervalued_stocks = df[df['Discount'] >= 0.15]
+    quality_stocks = df[df['ROE'] >= 15]
+    
+    stats_html = f"""
+    <div style="background: #0f0f0f; border: 1px solid #262626; border-radius: 4px; padding: 16px; font-family: IBM Plex Mono, monospace;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+            <div style="background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%); padding: 10px 12px; border-left: 2px solid #ff8c00; border-radius: 2px;">
+                <div style="font-size: 9px; color: #808080; margin-bottom: 4px; letter-spacing: 0.5px;">TOTAL STOCKS</div>
+                <div style="font-size: 20px; font-weight: 700; color: #ff8c00;">{len(df)}</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%); padding: 10px 12px; border-left: 2px solid #00ff41; border-radius: 2px;">
+                <div style="font-size: 9px; color: #808080; margin-bottom: 4px; letter-spacing: 0.5px;">BUY SIGNALS</div>
+                <div style="font-size: 20px; font-weight: 700; color: #00ff41;">{len(buy_signals)}</div>
+                <div style="font-size: 8px; color: #666; margin-top: 2px;">Strong Buy + Buy</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%); padding: 10px 12px; border-left: 2px solid #90ee90; border-radius: 2px;">
+                <div style="font-size: 9px; color: #808080; margin-bottom: 4px; letter-spacing: 0.5px;">HIGH YIELD</div>
+                <div style="font-size: 20px; font-weight: 700; color: #90ee90;">{len(high_yield_stocks)}</div>
+                <div style="font-size: 8px; color: #666; margin-top: 2px;">Yield ≥ 8%</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%); padding: 10px 12px; border-left: 2px solid #ffd700; border-radius: 2px;">
+                <div style="font-size: 9px; color: #808080; margin-bottom: 4px; letter-spacing: 0.5px;">UNDERVALUED</div>
+                <div style="font-size: 20px; font-weight: 700; color: #ffd700;">{len(undervalued_stocks)}</div>
+                <div style="font-size: 8px; color: #666; margin-top: 2px;">Discount ≥ 15%</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%); padding: 10px 12px; border-left: 2px solid #4a90e2; border-radius: 2px;">
+                <div style="font-size: 9px; color: #808080; margin-bottom: 4px; letter-spacing: 0.5px;">QUALITY</div>
+                <div style="font-size: 20px; font-weight: 700; color: #4a90e2;">{len(quality_stocks)}</div>
+                <div style="font-size: 8px; color: #666; margin-top: 2px;">ROE ≥ 15%</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%); padding: 10px 12px; border-left: 2px solid #ff8c00; border-radius: 2px;">
+                <div style="font-size: 9px; color: #808080; margin-bottom: 4px; letter-spacing: 0.5px;">AVG DISCOUNT</div>
+                <div style="font-size: 20px; font-weight: 700; color: #ff8c00;">{df['Discount'].mean() * 100:+.1f}%</div>
+                <div style="font-size: 8px; color: #666; margin-top: 2px;">Portfolio avg</div>
+            </div>
+        </div>
+    </div>
+    """
+    st.markdown(stats_html, unsafe_allow_html=True)
+
+
+def render_statistics(df: pd.DataFrame):
+    """Render statistical analysis with Bloomberg terminal styling."""
+    if df.empty:
+        st.info("No data to display")
+        return
+    
+    # Add header with stats summary
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%); padding: 12px 16px; border-left: 3px solid #ff8c00; border-radius: 2px; margin-bottom: 20px;">
+        <div style="font-size: 11px; font-weight: 700; color: #ff8c00; letter-spacing: 1.5px; font-family: IBM Plex Mono, monospace;">PORTFOLIO STATISTICS</div>
+        <div style="font-size: 9px; color: #808080; margin-top: 4px; font-family: IBM Plex Mono, monospace;">Aggregate analysis of filtered stocks</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 # --------------------------

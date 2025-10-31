@@ -110,7 +110,8 @@ def clear_filters():
     """Reset all filters to default values."""
     st.session_state.filter_signals = []
     st.session_state.filter_sectors = []
-    st.session_state.filter_discount_min = 0.0
-    st.session_state.filter_yield_min = 0.0
-    st.session_state.filter_roe_min = 0.0
-    st.session_state.filter_dpr_max = 1000.0
+    # Default to the lowest options available in new static dropdowns
+    st.session_state.filter_discount_min = 0
+    st.session_state.filter_yield_min = 0  # user requested default 0
+    st.session_state.filter_roe_min = 0    # user requested default 0
+    st.session_state.filter_dpr_max = 1000
