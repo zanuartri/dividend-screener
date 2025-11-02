@@ -10,6 +10,7 @@ Professional Bloomberg Terminal-style dividend screener for Indonesian stock mar
 
 - **📊 Real-time Market Data** - Fetches live stock prices from Yahoo Finance
 - **💎 Smart Valuation** - Uses Graham Number formula for fair value calculation
+- **⚙️ Manual Fair Value Override** - Set custom fair value for stocks (marked with ⚙️ icon)
 - **🎯 Signal System** - Automated buy/sell signals based on yield, ROE, and discount metrics
 - **📅 Dividend Calendar** - Visual calendar showing expected dividend payment schedules
 - **📈 Portfolio Analytics** - Statistical analysis and charts for filtered stocks
@@ -72,7 +73,10 @@ dividend-screener/
    - DivTTM (Dividend Trailing Twelve Months)
    - DPR (Dividend Payout Ratio %)
    - Interim & Final dividend months
+   - **Manual Fair Value (Optional)** - Override Graham Number calculation with custom value
 4. Click **SAVE**
+
+**Note:** Stocks with manual fair value override are marked with ⚙️ icon in the main table.
 
 ### Filtering Stocks
 
@@ -108,8 +112,17 @@ dividend-screener/
 | **WAIT** 🟠         | Below minimum thresholds                |
 | **WAIT FOR DIP** 🔴 | Overvalued (discount < 0)               |
 
-**Valuation Formula:** Fair Value = √(22.5 × BVPS × EPS)  
+**Valuation Formula:**  
+Fair Value = √(22.5 × BVPS × EPS)  
 _Based on Benjamin Graham's value investing methodology_
+
+**⚙️ Manual Fair Value Override:**  
+Users can set custom fair value for specific stocks via the MANAGE dialog. When enabled:
+
+- Manual fair value is used instead of Graham Number calculation
+- Discount and signals are calculated based on manual value
+- Stock is marked with ⚙️ icon in the table
+- Set to 0 to revert to automatic Graham calculation
 
 ## 🛠️ Tech Stack
 
@@ -168,9 +181,12 @@ Edit `.streamlit/config.toml` to customize:
 **CSV Format:**
 
 ```csv
-Ticker,BVPS,EPS,ROE,DivTTM,DPR,Interim,Final,LastUpdated
-TLKM,1334.0,222.0,17.3,212.47,96.89,,July,2025-10-26 12:00:00
+Ticker,BVPS,EPS,ROE,DivTTM,DPR,Interim,Final,ManualFairValue,LastUpdated
+TLKM,1334.0,222.0,17.3,212.47,96.89,,July,0,2025-10-26 12:00:00
+BBCA,8500.0,850.0,15.2,450.0,52.94,May,,12000,2025-10-26 12:00:00
 ```
+
+_Note: ManualFairValue = 0 means use Graham Number calculation_
 
 ## 🤝 Contributing
 

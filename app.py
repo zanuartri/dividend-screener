@@ -105,8 +105,8 @@ def crud_dialog():
         dpr_value = coerce_float(stock_data.get("DPR", 0))
         roe_value = coerce_float(stock_data.get("ROE", 0))
         
-        dpr_input = c2.number_input("DPR (%)", value=dpr_value, min_value=0.0, max_value=1000.0)
-        roe_input = c3.number_input("ROE (%)", value=roe_value, min_value=0.0, max_value=100.0)
+        dpr_input = c2.number_input("DPR (%)", value=dpr_value, min_value=0.0)
+        roe_input = c3.number_input("ROE (%)", value=roe_value, min_value=0.0)
         
         # Store as percentage values directly
         new_data["DPR"] = dpr_input
@@ -115,6 +115,21 @@ def crud_dialog():
         c4, c5 = st.columns(2)
         new_data["BVPS"] = c4.number_input("BVPS (IDR)", value=coerce_float(stock_data.get("BVPS", 0)), min_value=0.0)
         new_data["EPS"] = c5.number_input("EPS (IDR)", value=coerce_float(stock_data.get("EPS", 0)), min_value=0.0)
+        
+        # Manual Fair Value section
+        st.markdown("<div style='font-size: 11px; color: #ff8c00; font-weight: 700; letter-spacing: 1px; margin: 20px 0 8px 0; font-family: IBM Plex Mono, monospace;'>VALUATION OVERRIDE (OPTIONAL)</div>", unsafe_allow_html=True)
+        st.markdown("""
+        <div style='background: rgba(255, 140, 0, 0.1); padding: 12px 16px; border-left: 3px solid #ff8c00; border-radius: 3px; margin-bottom: 12px;'>
+            <div style='font-size: 10px; color: #ff8c00; font-weight: 600; letter-spacing: 0.5px;'>ℹ️ Set manual fair value to override Graham Number calculation. Leave at 0 to use automatic calculation.</div>
+        </div>
+        """, unsafe_allow_html=True)
+        manual_fv_value = coerce_float(stock_data.get("ManualFairValue", 0))
+        new_data["ManualFairValue"] = st.number_input(
+            "MANUAL FAIR VALUE (IDR)", 
+            value=manual_fv_value, 
+            min_value=0.0,
+            help="Enter custom fair value. Set to 0 to use Graham Number formula (√(22.5 × BVPS × EPS))"
+        )
 
         # Dividend schedule section
         st.markdown("<div style='font-size: 11px; color: #ff8c00; font-weight: 700; letter-spacing: 1px; margin: 20px 0 8px 0; font-family: IBM Plex Mono, monospace;'>DIVIDEND SCHEDULE</div>", unsafe_allow_html=True)
@@ -596,7 +611,9 @@ def main():
                     <div style="color: #ff8c00; font-size: 11px; font-weight: 700; margin-bottom: 8px;">VALUATION</div>
                     <div style="font-size: 10px; color: #ccc; line-height: 1.6;">
                         Fair Value = √(22.5 × BVPS × EPS)<br>
-                        <span style="color: #808080; font-size: 9px;">Graham Number formula</span>
+                        <span style="color: #808080; font-size: 9px;">Graham Number formula</span><br><br>
+                        <span style="color: #00ff41; font-size: 9px;">⚙️ MANUAL OVERRIDE:</span><br>
+                        <span style="color: #808080; font-size: 9px;">Stocks with ⚙️ icon use custom fair value set via MANAGE dialog</span>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -616,7 +633,7 @@ def main():
     df_filtered = df_filtered.sort_values('Ticker', ascending=True).reset_index(drop=True)
 
     # === MAIN DATA TABLE ===
-    st.caption(f"Showing {len(df_filtered)} of {len(df_processed)} stocks")
+    st.caption(f"Showing {len(df_filtered)} of {len(df_processed)} stocks · ⚙️ = Manual Fair Value")
 
     if not df_filtered.empty:
         # Two column layout: Table + Preview
@@ -627,6 +644,13 @@ def main():
             display_cols = ["Ticker", "Sector", "CurrentPrice", "FairValue", "Discount", 
                            "DivYield", "DPR", "ROE", "Signal"]
             df_display = df_filtered[display_cols].copy()
+            
+            # Add manual FV indicator to ticker
+            if 'UsesManualFV' in df_filtered.columns:
+                df_display['Ticker'] = df_filtered.apply(
+                    lambda row: f"⚙️ {row['Ticker']}" if row.get('UsesManualFV', False) else row['Ticker'],
+                    axis=1
+                )
             
             # Rename columns
             df_display.columns = [DISPLAY_NAMES.get(c, c) for c in df_display.columns]
@@ -713,9 +737,14 @@ def main():
                     discount = preview_stock.get('Discount', 0)
                     fair_value = preview_stock.get('FairValue', 0)
                     signal = preview_stock.get('Signal', 'WAIT')
+                    uses_manual_fv = preview_stock.get('UsesManualFV', False)
                     
                     # Discount color
                     discount_color = "#00ff41" if discount >= 0.25 else "#90ee90" if discount >= 0.15 else "#ffd700" if discount >= 0 else "#ff3333"
+                    
+                    # Fair value label with indicator
+                    fv_label = "FAIR VALUE ⚙️" if uses_manual_fv else "FAIR VALUE"
+                    fv_tooltip = "Manual Override" if uses_manual_fv else "Graham Number"
                     
                     # Signal color
                     signal_color_map = {
@@ -863,7 +892,7 @@ def main():
     </div>
     <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #333;'>
         <div>
-            <div style='font-size: 9px; color: #808080; letter-spacing: 1px; margin-bottom: 4px;'>FAIR VALUE</div>
+            <div style='font-size: 9px; color: #808080; letter-spacing: 1px; margin-bottom: 4px;' title='{fv_tooltip}'>{fv_label}</div>
             <div style='font-size: 20px; font-weight: 700; color: #f5f5f5;'>{fair_value:,.0f}</div>
         </div>
         <div>

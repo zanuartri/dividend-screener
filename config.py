@@ -30,18 +30,18 @@ THRESHOLDS = {
 # Display columns
 MANUAL_COLUMNS = [
     "Ticker", "BVPS", "EPS", "ROE", "DivTTM", 
-    "DPR", "Interim", "Final", "LastUpdated"
+    "DPR", "Interim", "Final", "ManualFairValue", "LastUpdated"
 ]
 
 ALL_COLUMNS = [
     "Ticker", "BVPS", "EPS", "ROE", "DivTTM", "DPR", 
-    "Interim", "Final", "LastUpdated", "CurrentPrice", 
+    "Interim", "Final", "ManualFairValue", "LastUpdated", "CurrentPrice", 
     "DivYield", "Discount", "FairValue", "Signal", "Sector"
 ]
 
 NUMERIC_COLS = [
     "DivTTM", "DivYield", "DPR", "ROE", "BVPS", 
-    "EPS", "FairValue", "CurrentPrice", "Discount"
+    "EPS", "FairValue", "ManualFairValue", "CurrentPrice", "Discount"
 ]
 
 # UI Options

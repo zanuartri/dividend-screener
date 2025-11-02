@@ -119,18 +119,33 @@ def process_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """
     Process dataframe: compute fair value, discount, yield, and signals.
     Fully vectorized for maximum performance with caching.
+    Uses ManualFairValue if available, otherwise calculates using Graham Number.
     """
     if df.empty:
         return df
     
     # Convert to numeric (vectorized)
-    numeric_cols = ["BVPS", "EPS", "ROE", "DivTTM", "DPR", "CurrentPrice"]
+    numeric_cols = ["BVPS", "EPS", "ROE", "DivTTM", "DPR", "CurrentPrice", "ManualFairValue"]
     for col in numeric_cols:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce')
     
-    # Compute fair value (vectorized with caching)
-    df['FairValue'] = compute_fair_value_vectorized(df['BVPS'], df['EPS'])
+    # Compute Graham fair value (vectorized with caching)
+    df['GrahamFairValue'] = compute_fair_value_vectorized(df['BVPS'], df['EPS'])
+    
+    # Use ManualFairValue if available, otherwise use Graham calculation
+    # ManualFairValue > 0 means user has set a manual value
+    if 'ManualFairValue' not in df.columns:
+        df['ManualFairValue'] = np.nan
+    
+    df['FairValue'] = np.where(
+        (df['ManualFairValue'].notna()) & (df['ManualFairValue'] > 0),
+        df['ManualFairValue'],
+        df['GrahamFairValue']
+    )
+    
+    # Mark stocks using manual fair value
+    df['UsesManualFV'] = (df['ManualFairValue'].notna()) & (df['ManualFairValue'] > 0)
     
     # Compute discount (vectorized)
     df['Discount'] = np.where(
