@@ -3,11 +3,16 @@
 # Professional dividend screener for IDX equities
 
 from datetime import datetime
+import os
+from dotenv import load_dotenv
 
 import pandas as pd
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
+
+# Load environment variables
+load_dotenv()
 
 # Import from custom modules
 from config import (
@@ -237,13 +242,14 @@ def main():
         """, unsafe_allow_html=True)
     with col_time:
         now = datetime.now()
+        data_source = st.session_state.get('data_source', '💾 Local CSV')
         st.markdown(f"""
         <div style="background: #0f0f0f; padding: 16px 20px; border: 1px solid #262626; border-radius: 2px; text-align: right; height: 92px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
             <div style="font-size: 18px; color: #ff8c00; font-weight: 700; font-family: IBM Plex Mono, monospace; letter-spacing: 2px;">
                 {now.strftime('%d %b %Y').upper()}
             </div>
-            <div style="font-size: 11px; color: #666; margin-top: 4px; letter-spacing: 1px; font-family: IBM Plex Mono, monospace;">
-                {now.strftime('%H:%M:%S')}
+            <div style="font-size: 10px; color: #666; margin-top: 4px; letter-spacing: 1px; font-family: IBM Plex Mono, monospace;">
+                {now.strftime('%H:%M:%S')} · {data_source}
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -360,10 +366,10 @@ def main():
     </style>
     """, unsafe_allow_html=True)
     
-    # Button layout area constrained to 50% width of the page
+    # Button layout - 3 buttons
     group_col, spacer_col = st.columns([1, 1])
     with group_col:
-        col_btn1, col_btn2, col_btn3, col_btn4 = st.columns(4)
+        col_btn1, col_btn2, col_btn3 = st.columns(3)
         with col_btn1:
             if st.button("⚙ MANAGE", use_container_width=True, key="btn_manage"):
                 crud_dialog()
@@ -380,22 +386,6 @@ def main():
             if st.button("✕ CLEAR", use_container_width=True, key="btn_clear"):
                 clear_filters()
                 st.rerun()
-        with col_btn4:
-            # Read the existing data_saham.csv file and provide download
-            import os
-            csv_path = os.path.join(os.path.dirname(__file__), 'data_saham.csv')
-            with open(csv_path, 'rb') as f:
-                csv_data = f.read()
-            
-            st.download_button(
-                label="⬇ DOWNLOAD",
-                data=csv_data,
-                file_name="data_saham.csv",
-                mime="text/csv",
-                key="btn_download",
-                type="secondary",
-                use_container_width=True
-            )
 
     st.markdown('<div style="margin: 0;"></div>', unsafe_allow_html=True)
 

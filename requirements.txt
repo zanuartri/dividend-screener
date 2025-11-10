@@ -10,4 +10,8 @@ requests>=2.31.0
 # Visualization
 plotly>=5.18.0
 
+# Supabase (Database)
+supabase>=2.4.1
+python-dotenv>=1.0.0
+
 # Python Version: 3.11+
