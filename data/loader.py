@@ -27,10 +27,11 @@ def ensure_columns(df: pd.DataFrame) -> pd.DataFrame:
             if col in NUMERIC_COLS:
                 df[col] = np.nan
             elif col == "LastUpdated":
-                df[col] = pd.NaT
+                df[col] = ""  # Keep as string, not datetime
             else:
                 df[col] = ""
-    df["LastUpdated"] = pd.to_datetime(df["LastUpdated"], errors='coerce')
+    # Don't convert LastUpdated to datetime - keep it as string for Supabase compatibility
+    # It comes from Supabase already as ISO string and needs to stay that way
     return df
 
 
@@ -39,7 +40,8 @@ def make_empty_df() -> pd.DataFrame:
     df = pd.DataFrame(columns=ALL_COLUMNS)
     for col in NUMERIC_COLS:
         df[col] = pd.to_numeric(df[col], errors='coerce')
-    df["LastUpdated"] = pd.to_datetime(df["LastUpdated"])
+    # Keep LastUpdated as string for consistency
+    df["LastUpdated"] = ""
     return df
 
 
@@ -78,6 +80,60 @@ def save_csv(df: pd.DataFrame, file_path: str = None) -> bool:
     try:
         # Select hanya column yang perlu disimpan
         save_df = df[MANUAL_COLUMNS].copy()
+        
+        # Simpan ke Supabase
+        client = get_supabase_client()
+        client.save_saham(save_df)
+        
+        # Clear cache
+        load_supabase_cached.clear()
+        
+        return True
+        
+    except Exception as e:
+        st.error(f"❌ Failed to save data: {str(e)[:150]}")
+        return False
+
+
+def save_changed_rows(df: pd.DataFrame, df_original: pd.DataFrame, file_path: str = None) -> bool:
+    """
+    Save hanya rows yang berubah ke Supabase.
+    
+    Args:
+        df: Current dataframe
+        df_original: Original dataframe untuk detect changes
+        file_path: Not used (kept for compatibility)
+    
+    Returns:
+        True if successful, False otherwise
+    """
+    try:
+        # Simple approach: compare rows and find differences
+        # If shapes different (row added/removed), save all
+        if len(df) != len(df_original):
+            # Row added or deleted - save all
+            save_df = df[MANUAL_COLUMNS].copy()
+        else:
+            # Same number of rows - find changed ones
+            # Compare each row
+            changed_indices = []
+            for idx in df.index:
+                if idx < len(df_original):
+                    row_current = df.iloc[idx][MANUAL_COLUMNS].fillna('')
+                    row_original = df_original.iloc[idx][MANUAL_COLUMNS].fillna('')
+                    # Compare values
+                    if not (row_current == row_original).all():
+                        changed_indices.append(idx)
+                else:
+                    # New row
+                    changed_indices.append(idx)
+            
+            if len(changed_indices) == 0:
+                # No changes
+                return True
+            
+            # Save only changed rows
+            save_df = df.iloc[changed_indices][MANUAL_COLUMNS].copy()
         
         # Simpan ke Supabase
         client = get_supabase_client()

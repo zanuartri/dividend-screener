@@ -19,7 +19,7 @@ from config import (
     EXCHANGE_SUFFIX, MANUAL_COLUMNS,
     DISPLAY_NAMES, FORMATTERS, MONTH_OPTIONS, SIGNAL_OPTIONS, FILTER_PRESETS
 )
-from data import load_csv, save_csv, fetch_all_tickers
+from data import load_csv, save_csv, save_changed_rows, fetch_all_tickers
 from models import process_dataframe, apply_filters, apply_preset, clear_filters, _apply_pending_preset
 from ui import get_custom_css, get_loading_skeleton, display_metric_cards, show_stock_details
 from utils import coerce_float, style_signal, get_yield_color, get_discount_color, get_roe_color, get_dpr_color
@@ -81,7 +81,7 @@ def crud_dialog():
                 <div style='font-size: 10px; color: #aaa; margin-top: 4px;'>This action cannot be undone</div>
             </div>
             """, unsafe_allow_html=True)
-        if st.button("🗑️ CONFIRM DELETE", type="secondary", disabled=not ticker_to_edit, use_container_width=True):
+        if st.button("🗑️ CONFIRM DELETE", type="secondary", disabled=not ticker_to_edit, width='stretch'):
             st.session_state.df = df.drop(index=index_to_edit).reset_index(drop=True)
             save_csv(st.session_state.df[MANUAL_COLUMNS])
             st.toast(f"✅ {ticker_to_edit} DELETED")
@@ -152,7 +152,7 @@ def crud_dialog():
 
         # Submit button
         st.markdown("<div style='margin-top: 24px;'></div>", unsafe_allow_html=True)
-        if st.form_submit_button(f"💾 SAVE {action.upper()}", type="primary", use_container_width=True):
+        if st.form_submit_button(f"💾 SAVE {action.upper()}", type="primary", width='stretch'):
             new_data["LastUpdated"] = datetime.today().strftime("%Y-%m-%d %H:%M:%S")
             if action == "Add New":
                 if not new_data["Ticker"]:
@@ -165,7 +165,13 @@ def crud_dialog():
                 for k in MANUAL_COLUMNS:
                     st.session_state.df.at[index_to_edit, k] = new_data.get(k, "")
 
-            save_csv(st.session_state.df[MANUAL_COLUMNS])
+            # Save only changed rows (if df_original exists, else save all)
+            if 'df_original' in st.session_state:
+                save_changed_rows(st.session_state.df, st.session_state.df_original)
+                # Update original for next comparison
+                st.session_state.df_original = st.session_state.df.copy()
+            else:
+                save_csv(st.session_state.df[MANUAL_COLUMNS])
             st.toast(f"✅ {new_data['Ticker']} SAVED SUCCESSFULLY")
             st.rerun()
 
@@ -180,6 +186,8 @@ def main():
     if 'df' not in st.session_state:
         with st.spinner("⏳ Loading data..."):
             st.session_state.df = load_csv()
+            # Track original df for change detection
+            st.session_state.df_original = st.session_state.df.copy()
 
     df_ref = st.session_state.df
     tickers_to_fetch = df_ref["Ticker"].dropna().unique()
@@ -371,10 +379,10 @@ def main():
     with group_col:
         col_btn1, col_btn2, col_btn3 = st.columns(3)
         with col_btn1:
-            if st.button("⚙ MANAGE", use_container_width=True, key="btn_manage"):
+            if st.button("⚙ MANAGE", width='stretch', key="btn_manage"):
                 crud_dialog()
         with col_btn2:
-            if st.button("⟳ REFRESH", use_container_width=True, key="btn_refresh"):
+            if st.button("⟳ REFRESH", width='stretch', key="btn_refresh"):
                 st.session_state.pop('last_yf_fetch', None)
                 st.session_state['force_recompute'] = True
                 for key in list(st.session_state.keys()):
@@ -383,7 +391,7 @@ def main():
                 st.cache_data.clear()
                 st.rerun()
         with col_btn3:
-            if st.button("✕ CLEAR", use_container_width=True, key="btn_clear"):
+            if st.button("✕ CLEAR", width='stretch', key="btn_clear"):
                 clear_filters()
                 st.rerun()
 
@@ -539,7 +547,7 @@ def main():
                     if st.button(
                         f"APPLY {preset_name.upper()}",
                         key=f"preset_{preset_name}",
-                        use_container_width=True,
+                        width='stretch',
                         type="secondary"
                     ):
                         apply_preset(preset_name)
@@ -685,7 +693,7 @@ def main():
             # Display with click handling - fixed height to prevent double render
             event = st.dataframe(
                 styled_df,
-                use_container_width=True,
+                width='stretch',
                 hide_index=True,
                 on_select="rerun",
                 selection_mode="single-row",
@@ -953,7 +961,7 @@ def main():
                     </style>
                     """, unsafe_allow_html=True)
                     
-                    if st.button("📈 VIEW DETAILS", use_container_width=True, key="preview_details"):
+                    if st.button("📈 VIEW DETAILS", width='stretch', key="preview_details"):
                         # Get stock data from filtered dataframe
                         stock_data = df_filtered[df_filtered['Ticker'] == ticker].iloc[0].to_dict()
                         show_stock_details(ticker, stock_data)
@@ -1173,7 +1181,7 @@ def render_statistics_and_charts(df: pd.DataFrame):
             textfont_size=9,
             marker=dict(line=dict(color='#000000', width=2))
         )
-        st.plotly_chart(fig_sector_pie, use_container_width=True)
+        st.plotly_chart(fig_sector_pie, width='stretch')
     
     with col2:
         st.markdown("#### SECTOR DISTRIBUTION")
@@ -1205,7 +1213,7 @@ def render_statistics_and_charts(df: pd.DataFrame):
             ),
             showlegend=False
         )
-        st.plotly_chart(fig_sector_bar, use_container_width=True)
+        st.plotly_chart(fig_sector_bar, width='stretch')
     
     # === ROW 2: Top 10 by Yield + Top 10 by Discount ===
     st.markdown('<div style="margin: 24px 0;"></div>', unsafe_allow_html=True)
@@ -1251,7 +1259,7 @@ def render_statistics_and_charts(df: pd.DataFrame):
             showlegend=False
         )
         fig_top_yield.update_traces(marker_line_color='#000', marker_line_width=1)
-        st.plotly_chart(fig_top_yield, use_container_width=True)
+        st.plotly_chart(fig_top_yield, width='stretch')
     
     with col4:
         st.markdown("#### TOP 10 BY DISCOUNT")
@@ -1292,7 +1300,7 @@ def render_statistics_and_charts(df: pd.DataFrame):
             showlegend=False
         )
         fig_top_disc.update_traces(marker_line_color='#000', marker_line_width=1)
-        st.plotly_chart(fig_top_disc, use_container_width=True)
+        st.plotly_chart(fig_top_disc, width='stretch')
     
     # === ROW 3: Best Value Combo + Yield Sustainability ===
     st.markdown('<div style="margin: 24px 0;"></div>', unsafe_allow_html=True)
@@ -1343,7 +1351,7 @@ def render_statistics_and_charts(df: pd.DataFrame):
                 ),
                 showlegend=False
             )
-            st.plotly_chart(fig_value, use_container_width=True)
+            st.plotly_chart(fig_value, width='stretch')
         else:
             st.info("No stocks match criteria. Try adjusting filters.")
     
@@ -1411,7 +1419,7 @@ def render_statistics_and_charts(df: pd.DataFrame):
                     font=dict(size=8)
                 )
             )
-            st.plotly_chart(fig_sustain, use_container_width=True)
+            st.plotly_chart(fig_sustain, width='stretch')
         else:
             st.info("No high-yield stocks (≥5%) available.")
     

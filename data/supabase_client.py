@@ -79,9 +79,14 @@ class SupabaseClient:
                 if col in df.columns:
                     df[col] = pd.to_numeric(df[col], errors='coerce')
             
-            # Convert LastUpdated to datetime
+            # Convert LastUpdated to ISO string format
+            # Supabase returns timestamps as datetime objects - convert to ISO string
+            # to avoid Timestamp serialization issues when saving back
             if 'LastUpdated' in df.columns:
-                df['LastUpdated'] = pd.to_datetime(df['LastUpdated'], errors='coerce')
+                # Convert any timestamp/datetime to ISO string
+                df['LastUpdated'] = df['LastUpdated'].apply(
+                    lambda x: pd.Timestamp(x).isoformat() if pd.notna(x) else ''
+                )
             
             logger.info(f"✅ Loaded {len(df)} stocks from Supabase")
             return df
@@ -126,16 +131,45 @@ class SupabaseClient:
             
             # Upsert ke Supabase (insert atau update jika sudah ada)
             for record in records:
-                # Clean None values
-                record = {k: v for k, v in record.items() if pd.notna(v) and v is not None}
+                # Clean None values dan convert special types to JSON-serializable formats
+                cleaned_record = {}
+                for k, v in record.items():
+                    if pd.isna(v) or v is None:
+                        continue
+                    # Skip last_updated if it's empty string - let Supabase auto-set via DEFAULT
+                    if k == 'last_updated' and (v == '' or pd.isna(v)):
+                        continue
+                    # Convert Timestamp/datetime to ISO format string
+                    if isinstance(v, pd.Timestamp):
+                        cleaned_record[k] = v.isoformat()
+                    # Convert datetime.datetime to ISO format string
+                    elif hasattr(v, 'isoformat'):
+                        cleaned_record[k] = v.isoformat()
+                    else:
+                        cleaned_record[k] = v
+                
+                record = cleaned_record
                 
                 if 'ticker' not in record or not record['ticker']:
                     logger.warning(f"Skipping record without ticker: {record}")
                     continue
                 
-                # Use upsert untuk handle insert/update
+                # Smart upsert: try update first, then insert if needed
                 try:
-                    self.client.table("saham").upsert(record).execute()
+                    ticker = record['ticker']
+                    
+                    # First check if record exists
+                    check_response = self.client.table("saham").select("id").eq('ticker', ticker).execute()
+                    
+                    if check_response.data and len(check_response.data) > 0:
+                        # Record exists - update it
+                        self.client.table("saham").update(record).eq('ticker', ticker).execute()
+                        logger.debug(f"Updated: {ticker}")
+                    else:
+                        # Record doesn't exist - insert it
+                        self.client.table("saham").insert(record).execute()
+                        logger.debug(f"Inserted: {ticker}")
+                    
                 except Exception as e:
                     logger.error(f"Error upserting record {record}: {e}")
             
